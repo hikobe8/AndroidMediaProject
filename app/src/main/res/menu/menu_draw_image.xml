@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+            android:id="@+id/menu_view"
+            android:title="使用View"
+            app:showAsAction="collapseActionView"/>
+
+
+    <item
+            android:id="@+id/menu_surface"
+            android:title="使用SurfaceView"
+            app:showAsAction="collapseActionView"/>
+
+</menu>

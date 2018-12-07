@@ -1,4 +1,4 @@
-package com.palmax.androidmediaproject
+package com.hikobe8.androidmediaproject
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4

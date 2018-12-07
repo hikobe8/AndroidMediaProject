@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AndroidMediaProject</string>
+    <string name="title_draw_image">绘制图片</string>
 </resources>

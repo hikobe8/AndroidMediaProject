@@ -1,4 +1,4 @@
-package com.palmax.androidmediaproject
+package com.hikobe8.androidmediaproject
 
 import org.junit.Test
 
