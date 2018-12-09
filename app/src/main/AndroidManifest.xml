@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools" package="com.hikobe8.androidmediaproject">
+          xmlns:tools="http://schemas.android.com/tools"
+          package="com.hikobe8.androidmediaproject">
 
     <application
             android:allowBackup="true"
@@ -8,16 +9,20 @@
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/AppTheme" tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name="com.hikobe8.androidmediaproject.MainActivity"
-        android:theme="@style/ActionBarTheme">
+            android:theme="@style/AppTheme"
+            tools:ignore="GoogleAppIndexingWarning">
+        <activity
+                android:name=".MainActivity"
+                android:theme="@style/ActionBarTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name="com.hikobe8.androidmediaproject.draw.DrawImageActivity">
+        <activity android:name=".draw.DrawImageActivity">
+        </activity>
+        <activity android:name=".audio.AudioCaptureActivity">
         </activity>
     </application>
 
