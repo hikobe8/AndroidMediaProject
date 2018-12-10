@@ -79,6 +79,7 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_record_play)
+        setSupportActionBar(toolbar)
         setHomeAsUpEnabled()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (PermissionUtils.checkPermissionGranted(mActivity, Manifest.permission.RECORD_AUDIO)
