@@ -3,6 +3,7 @@ package com.hikobe8.androidmediaproject
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import com.hikobe8.androidmediaproject.audio.AudioRecordPlayActivity
 import com.hikobe8.androidmediaproject.draw.DrawImageActivity
 
 class MainActivity : AppCompatActivity() {
@@ -14,6 +15,10 @@ class MainActivity : AppCompatActivity() {
 
     fun go2DrawImageByView(view: View) {
         DrawImageActivity.launch(this)
+    }
+
+    fun go2AudioRecordPlay(view: View) {
+        AudioRecordPlayActivity.launch(this)
     }
 
 }

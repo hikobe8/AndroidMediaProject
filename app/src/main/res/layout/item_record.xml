@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="48dp">
+
+
+    <TextView
+            android:id="@+id/tv_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:layout_centerVertical="true"
+            android:textColor="?colorPrimary"
+            android:layout_marginLeft="16dp" android:layout_marginStart="16dp"/>
+
+    <ImageButton
+            android:id="@+id/iv_play"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            style="?actionButtonStyle"
+            android:src="@drawable/ic_play"/>
+
+</RelativeLayout>

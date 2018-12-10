@@ -1,5 +1,6 @@
 package com.hikobe8.androidmediaproject
 
+import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 
@@ -10,6 +11,15 @@ import android.view.MenuItem
  */
 
 open class BaseActivity: AppCompatActivity() {
+
+    protected val mActivity by lazy {
+        this
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        mActivity
+    }
 
     fun setHomeAsUpEnabled(){
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

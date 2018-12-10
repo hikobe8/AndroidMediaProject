@@ -4,7 +4,12 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.SystemClock
+import android.text.TextUtils
 import android.util.Log
+import com.hikobe8.androidmediaproject.FileUtils
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 /***
  *  Author : ryu18356@gmail.com
@@ -14,7 +19,7 @@ import android.util.Log
 class AudioRecordCapturer {
 
     companion object {
-        val TAG = "AudioRecordCapturer"
+        const val TAG = "AudioRecordCapturer"
         const val DEFAULT_SOURCE = MediaRecorder.AudioSource.MIC
         const val DEFAULT_SAMPLE_SIZE = 44100
         const val DEFAULT_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_STEREO
@@ -23,11 +28,25 @@ class AudioRecordCapturer {
 
     private var mAudioRecorder: AudioRecord? = null
     private var mMinBufferSize = 0
-   private  var mLoopStarted = false
+    private var mLoopStarted = false
+    private var mRecordStarted = false
+    private var mCaptureThread: Thread? = null
+    var mFileName: String? = null
 
     fun startCapture() {
+        if (mRecordStarted) {
+            Log.e(TAG, "Capture already started!")
+            return
+        }
+        if (TextUtils.isEmpty(mFileName)) {
+            mFileName = System.currentTimeMillis().toString() + ".wav"
+        }
         mMinBufferSize =
                 AudioRecord.getMinBufferSize(DEFAULT_SAMPLE_SIZE, DEFAULT_CHANNEL_CONFIG, DEFAULT_CHANNEL_FORMAT)
+        if (mMinBufferSize == AudioRecord.ERROR_BAD_VALUE) {
+            Log.e(TAG, "getMinBufferSize error!")
+            return
+        }
         Log.d(TAG, "getMinBufferSize = $mMinBufferSize")
         mAudioRecorder = AudioRecord(
             DEFAULT_SOURCE,
@@ -41,29 +60,61 @@ class AudioRecordCapturer {
             return
         }
         mAudioRecorder?.startRecording()
+        mRecordStarted = true
+        mCaptureThread = Thread(AudioCaptureRunnable())
+        mCaptureThread?.start()
         mLoopStarted = true
-        Thread(AudioCaptureRunnable()).start()
         Log.d(TAG, "capture started")
     }
 
     fun stopCapture() {
+        if (!mRecordStarted) {
+            return
+        }
         mLoopStarted = false
+        try {
+            mCaptureThread?.interrupt()
+            mCaptureThread?.join(1000)
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+        }
         if (mAudioRecorder?.state == AudioRecord.RECORDSTATE_RECORDING) {
             mAudioRecorder?.stop()
         }
         mAudioRecorder?.release()
+        mRecordStarted = false
         Log.d(TAG, "capture stopped")
     }
 
     inner class AudioCaptureRunnable : Runnable {
         override fun run() {
-            while (mLoopStarted) {
-                val buffer:ByteArray = ByteArray(mMinBufferSize)
-                val ret = mAudioRecorder?.read(buffer, 0, mMinBufferSize)
-                Log.d(TAG, "get "+ret+"bytes pcm BufferSize")
-                SystemClock.sleep(10)
+            var fos: BufferedOutputStream? = null
+            try {
+                val file = File(FileUtils.getStorageDir(), mFileName)
+                if (!file.exists()) {
+                    file.createNewFile()
+                }
+                fos = BufferedOutputStream(FileOutputStream(file))
+                while (mLoopStarted) {
+                    val buffer = ByteArray(mMinBufferSize)
+                    val ret = mAudioRecorder?.read(buffer, 0, mMinBufferSize)
+                    when (ret) {
+                        AudioRecord.ERROR_INVALID_OPERATION -> Log.e(TAG, "ERROR_INVALID_OPERATION")
+                        AudioRecord.ERROR_BAD_VALUE -> Log.e(TAG, "ERROR_BAD_VALUE")
+                        else -> {
+                            // write to file
+                            fos.write(buffer, 0, ret!!)
+                        }
+                    }
+                    SystemClock.sleep(10)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                fos?.flush()
+                fos?.close()
             }
+
         }
     }
-
 }

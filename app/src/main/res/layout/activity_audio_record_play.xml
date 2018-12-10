@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:title="使用AudioRecord/AudioTrack"
+            style="@style/ActionBarStyle"/>
+
+    <Button
+            android:layout_below="@id/toolbar"
+            android:layout_marginTop="16dp"
+            android:text="开始录音"
+            android:layout_marginLeft="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_start"/>
+    <Button
+            android:layout_below="@id/toolbar"
+            android:id="@+id/btn_stop"
+            android:text="停止录音"
+            android:layout_alignTop="@id/btn_start"
+            android:layout_toRightOf="@id/btn_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    <TextView
+            android:id="@+id/tv_duration"
+            android:layout_alignBaseline="@id/btn_start"
+            android:layout_marginLeft="16dp"
+            android:visibility="invisible"
+            android:textColor="@android:color/holo_red_dark"
+            android:text="@string/text_recording"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/btn_stop"/>
+
+    <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_audios"
+            android:layout_marginTop="16dp"
+            android:layout_below="@id/btn_start"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+</RelativeLayout>
