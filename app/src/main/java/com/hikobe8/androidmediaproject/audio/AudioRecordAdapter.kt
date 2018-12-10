@@ -38,6 +38,13 @@ class AudioAdapter: RecyclerView.Adapter<AudioAdapter.AudioHolder>() {
         holder.bindData(mDataList[position])
     }
 
+    fun update(audioRecordBean: AudioRecordBean) {
+        mDataList.asSequence().filter { it != audioRecordBean }.map {
+            it.isPlaying = false
+        }.toList()
+        notifyDataSetChanged()
+    }
+
     inner class AudioHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         fun bindData(audioRecordBean: AudioRecordBean) {
@@ -48,11 +55,11 @@ class AudioAdapter: RecyclerView.Adapter<AudioAdapter.AudioHolder>() {
                 it as ImageView
                 if (audioRecordBean.isPlaying){
                     it.setImageResource(R.drawable.ic_stop)
-                    mOnItemClickListener?.onStopClicked(audioRecordBean)
+                    mOnItemClickListener?.onPlayClicked(audioRecordBean)
                 }
                 else {
                     it.setImageResource(R.drawable.ic_play)
-                    mOnItemClickListener?.onPlayClicked(audioRecordBean)
+                    mOnItemClickListener?.onStopClicked(audioRecordBean)
                 }
             }
         }

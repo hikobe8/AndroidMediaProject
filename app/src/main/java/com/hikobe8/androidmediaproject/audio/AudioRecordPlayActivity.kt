@@ -27,7 +27,15 @@ import kotlinx.android.synthetic.main.activity_audio_record_play.*
 import java.io.File
 import java.lang.ref.WeakReference
 
-class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener {
+class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapter.OnItemClickListener {
+    override fun onPlayClicked(audioRecordBean: AudioRecordBean) {
+        mAudioTrackPlayer.play(audioRecordBean.path)
+        mRecordAdapter.update(audioRecordBean)
+    }
+
+    override fun onStopClicked(audioRecordBean: AudioRecordBean) {
+        mAudioTrackPlayer.stop()
+    }
 
     companion object {
         fun launch(context: Context) {
@@ -74,6 +82,16 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener {
 
     private val mTimeHandler: TimerHandler by lazy {
         TimerHandler(this)
+    }
+
+    private val mAudioTrackPlayer:AudioTrackPlayer by lazy {
+        AudioTrackPlayer()
+    }
+
+    private val mRecordAdapter: AudioAdapter by lazy {
+        val audioAdapter = AudioAdapter()
+        audioAdapter.mOnItemClickListener = this
+        audioAdapter
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -134,9 +152,8 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener {
         btn_start.setOnClickListener(this)
         btn_stop.setOnClickListener(this)
         rv_audios.layoutManager = LinearLayoutManager(this)
-        val recordAdapter = AudioAdapter()
         rv_audios.setHasFixedSize(true)
-        rv_audios.adapter = recordAdapter
+        rv_audios.adapter = mRecordAdapter
         rv_audios.addItemDecoration(DividerItemDecoration(mActivity, RecyclerView.VERTICAL))
         Observable.create(ObservableOnSubscribe<AudioRecordBean> {
             val rootDir = File(FileUtils.getStorageDir())
@@ -163,7 +180,7 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener {
                 }
 
                 override fun onNext(audioRecordBean: AudioRecordBean) {
-                    recordAdapter.addData(audioRecordBean)
+                    mRecordAdapter.addData(audioRecordBean)
                 }
 
                 override fun onError(e: Throwable) {
