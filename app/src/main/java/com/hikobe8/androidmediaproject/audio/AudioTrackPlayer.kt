@@ -44,7 +44,6 @@ class AudioTrackPlayer {
             val file = File(audioPath)
             if (file.exists() && file.length() > 0) {
                 var bis: BufferedInputStream? = null
-                var byteArrayOutputStream: ByteArrayOutputStream? = null
                 try {
                     bis = BufferedInputStream(FileInputStream(file))
                     val bufferSize =
@@ -65,6 +64,10 @@ class AudioTrackPlayer {
                     var touchEnd = false
                     mAudioTrack?.play()
                     while (!touchEnd) {
+                        if (it.isDisposed) {
+                            touchEnd = true
+                            continue
+                        }
                         val len = bis.read(buffer)
                         if (len == -1) {
                             touchEnd = true
@@ -73,15 +76,14 @@ class AudioTrackPlayer {
                         mAudioTrack?.write(buffer, 0, len)
                     }
                     mAudioTrack?.stop()
-                    mOnPlayCompletelyListener?.onPlayCompletely()
+                    //mOnPlayCompletelyListener?.onPlayCompletely() todo: correct OnPlayCompletelyListener invocation
                 } catch (e: Exception) {
                     e.printStackTrace()
                 } finally {
                     bis?.close()
-                    byteArrayOutputStream?.close()
                 }
-                mAudioTrack?.notificationMarkerPosition = ((file.length() / 2).toInt())
-                it.onNext(mAudioTrack!!)
+                if (mAudioTrack != null)
+                    it.onNext(mAudioTrack!!)
             }
             it.onComplete()
         }).subscribeOn(Schedulers.io())
@@ -97,17 +99,7 @@ class AudioTrackPlayer {
                 }
 
                 override fun onNext(audioTrack: AudioTrack) {
-                    audioTrack.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
-                        override fun onMarkerReached(track: AudioTrack?) {
-                            Log.e(TAG, "playbackHeadPosition changed : " + audioTrack.playbackHeadPosition.toString())
-                        }
 
-                        override fun onPeriodicNotification(track: AudioTrack?) {
-                            Log.e(TAG, "audio plays completely")
-                            mOnPlayCompletelyListener?.onPlayCompletely()
-                        }
-
-                    })
                 }
 
                 override fun onError(e: Throwable) {
@@ -133,6 +125,10 @@ class AudioTrackPlayer {
                     var len: Int
                     var isEnd = false
                     while (!isEnd) {
+                        if (it.isDisposed) {
+                            isEnd = true
+                            continue
+                        }
                         len = bis.read(buffer)
                         if (len == -1) {
                             isEnd = true
