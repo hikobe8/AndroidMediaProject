@@ -16,6 +16,7 @@ import com.hikobe8.androidmediaproject.BaseActivity
 import com.hikobe8.androidmediaproject.FileUtils
 import com.hikobe8.androidmediaproject.PermissionUtils
 import com.hikobe8.androidmediaproject.R
+import com.hikobe8.androidmediaproject.audio.AudioRecordCapturer.Companion.DEFAULT_SAMPLE_SIZE
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Observer
@@ -27,7 +28,14 @@ import kotlinx.android.synthetic.main.activity_audio_record_play.*
 import java.io.File
 import java.lang.ref.WeakReference
 
-class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapter.OnItemClickListener {
+class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapter.OnItemClickListener,
+    AudioRecordCapturer.OnRecordCompleteListener {
+    override fun onRecordCompleted(audioRecordBean: AudioRecordBean?) {
+        if (audioRecordBean != null) {
+            mRecordAdapter.addData(audioRecordBean)
+        }
+    }
+
     override fun onPlayClicked(audioRecordBean: AudioRecordBean) {
         mAudioTrackPlayer.play(audioRecordBean.path)
         mRecordAdapter.update(audioRecordBean)
@@ -77,7 +85,9 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
     }
 
     private val mAudioRecordCapturer: AudioRecordCapturer by lazy {
-        AudioRecordCapturer()
+        val audioRecordCapturer = AudioRecordCapturer()
+        audioRecordCapturer.mOnRecordCompleteListener = this
+        audioRecordCapturer
     }
 
     private val mTimeHandler: TimerHandler by lazy {
@@ -128,8 +138,8 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
                 tv_duration.visibility = View.VISIBLE
             }
             R.id.btn_stop -> {
-                mAudioRecordCapturer.stopCapture()
                 mTimeHandler.stop()
+                mAudioRecordCapturer.stopCapture()
                 tv_duration.visibility = View.INVISIBLE
             }
         }
@@ -162,7 +172,8 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
                 it.onNext(
                     AudioRecordBean(
                         file.absolutePath.substring(file.absolutePath.lastIndexOf(File.separator) + 1),
-                        file.absolutePath
+                        file.absolutePath,
+                        file.length() / (DEFAULT_SAMPLE_SIZE * 2 * 2)
                     )
                 )
             }

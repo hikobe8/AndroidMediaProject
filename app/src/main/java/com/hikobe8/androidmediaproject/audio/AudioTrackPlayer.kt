@@ -5,6 +5,7 @@ import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import java.io.BufferedInputStream
@@ -28,6 +29,7 @@ class AudioTrackPlayer {
     }
 
     private var mAudioTrack:AudioTrack?= null
+    private val mCompositeDisposable = CompositeDisposable()
 
     fun play(audioPath: String) {
         if (mAudioTrack != null) {
@@ -76,9 +78,12 @@ class AudioTrackPlayer {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : Observer<AudioTrack> {
                 override fun onComplete() {
+                    if (!mCompositeDisposable.isDisposed)
+                        mCompositeDisposable.dispose()
                 }
 
                 override fun onSubscribe(d: Disposable) {
+                    mCompositeDisposable.add(d)
                 }
 
                 override fun onNext(audioTrack: AudioTrack) {
@@ -86,11 +91,14 @@ class AudioTrackPlayer {
                 }
 
                 override fun onError(e: Throwable) {
+                    stop()
                 }
             })
     }
 
     fun stop() {
+        if (!mCompositeDisposable.isDisposed)
+            mCompositeDisposable.dispose()
         mAudioTrack?.stop()
         mAudioTrack?.release()
         mAudioTrack = null

@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.hikobe8.androidmediaproject.R
+import com.hikobe8.androidmediaproject.formatTime
 import com.hikobe8.androidmediaproject.inflate
 import kotlinx.android.synthetic.main.item_record.view.*
 
@@ -19,8 +20,8 @@ class AudioAdapter: RecyclerView.Adapter<AudioAdapter.AudioHolder>() {
     private val mDataList:ArrayList<AudioRecordBean> = ArrayList()
 
     fun addData(audioRecordBean: AudioRecordBean) {
-        mDataList.add(audioRecordBean)
-        notifyItemInserted(itemCount)
+        mDataList.add(0, audioRecordBean)
+        notifyItemInserted(0)
     }
 
     interface OnItemClickListener{
@@ -49,6 +50,7 @@ class AudioAdapter: RecyclerView.Adapter<AudioAdapter.AudioHolder>() {
 
         fun bindData(audioRecordBean: AudioRecordBean) {
             itemView.tv_name.text = audioRecordBean.name
+            itemView.tv_duration.text = audioRecordBean.duration.formatTime()
             if (audioRecordBean.isPlaying) itemView.iv_play.setImageResource(R.drawable.ic_stop) else itemView.iv_play.setImageResource(R.drawable.ic_play)
             itemView.iv_play.setOnClickListener {
                 audioRecordBean.isPlaying = !audioRecordBean.isPlaying
@@ -67,6 +69,6 @@ class AudioAdapter: RecyclerView.Adapter<AudioAdapter.AudioHolder>() {
 
 }
 
-data class AudioRecordBean(val name:String, val path:String) {
+data class AudioRecordBean(val name:String, val path:String, val duration:Long) {
     var isPlaying = false
 }

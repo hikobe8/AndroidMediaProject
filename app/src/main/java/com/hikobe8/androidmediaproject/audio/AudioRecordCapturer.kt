@@ -32,6 +32,11 @@ class AudioRecordCapturer {
     private var mRecordStarted = false
     private var mCaptureThread: Thread? = null
     var mFileName: String? = null
+    var mOnRecordCompleteListener: OnRecordCompleteListener? = null
+
+    interface OnRecordCompleteListener {
+        fun onRecordCompleted(audioRecordBean: AudioRecordBean?)
+    }
 
     fun startCapture() {
         if (mRecordStarted) {
@@ -39,7 +44,7 @@ class AudioRecordCapturer {
             return
         }
         if (TextUtils.isEmpty(mFileName)) {
-            mFileName = System.currentTimeMillis().toString() + ".wav"
+            mFileName = System.currentTimeMillis().toString() + ".pcm"
         }
         mMinBufferSize =
                 AudioRecord.getMinBufferSize(DEFAULT_SAMPLE_SIZE, DEFAULT_CHANNEL_CONFIG, DEFAULT_CHANNEL_FORMAT)
@@ -108,10 +113,13 @@ class AudioRecordCapturer {
                     }
                     SystemClock.sleep(10)
                 }
+                fos.flush()
+                mOnRecordCompleteListener?.onRecordCompleted(
+                    mFileName?.let { AudioRecordBean(it, file.absolutePath, file.length() / (DEFAULT_SAMPLE_SIZE * 2 * 2)) }
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                fos?.flush()
                 fos?.close()
             }
 
