@@ -12,10 +12,7 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
-import com.hikobe8.androidmediaproject.BaseActivity
-import com.hikobe8.androidmediaproject.FileUtils
-import com.hikobe8.androidmediaproject.PermissionUtils
-import com.hikobe8.androidmediaproject.R
+import com.hikobe8.androidmediaproject.*
 import com.hikobe8.androidmediaproject.audio.AudioRecordCapturer.Companion.DEFAULT_SAMPLE_SIZE
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
@@ -29,7 +26,14 @@ import java.io.File
 import java.lang.ref.WeakReference
 
 class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapter.OnItemClickListener,
-    AudioRecordCapturer.OnRecordCompleteListener {
+    AudioRecordCapturer.OnRecordCompleteListener, AudioTrackPlayer.OnPlayCompletelyListener {
+
+    override fun onPlayCompletely() {
+        runOnUiThread {
+            mRecordAdapter.stop()
+        }
+    }
+
     override fun onRecordCompleted(audioRecordBean: AudioRecordBean?) {
         if (audioRecordBean != null) {
             mRecordAdapter.addData(audioRecordBean)
@@ -37,8 +41,8 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
     }
 
     override fun onPlayClicked(audioRecordBean: AudioRecordBean) {
-        mAudioTrackPlayer.play(audioRecordBean.path)
         mRecordAdapter.update(audioRecordBean)
+        mAudioTrackPlayer.play(audioRecordBean.path)
     }
 
     override fun onStopClicked(audioRecordBean: AudioRecordBean) {
@@ -95,7 +99,9 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
     }
 
     private val mAudioTrackPlayer:AudioTrackPlayer by lazy {
-        AudioTrackPlayer()
+        val audioTrackPlayer = AudioTrackPlayer()
+        audioTrackPlayer.mOnPlayCompletelyListener = this
+        audioTrackPlayer
     }
 
     private val mRecordAdapter: AudioAdapter by lazy {

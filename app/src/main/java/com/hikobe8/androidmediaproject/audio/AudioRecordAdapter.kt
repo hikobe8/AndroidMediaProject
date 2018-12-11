@@ -46,6 +46,11 @@ class AudioAdapter: RecyclerView.Adapter<AudioAdapter.AudioHolder>() {
         notifyDataSetChanged()
     }
 
+    fun stop() {
+        mDataList.asSequence().filter { it.isPlaying }.map { it.isPlaying =false }.toList()
+        notifyDataSetChanged()
+    }
+
     inner class AudioHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         fun bindData(audioRecordBean: AudioRecordBean) {
