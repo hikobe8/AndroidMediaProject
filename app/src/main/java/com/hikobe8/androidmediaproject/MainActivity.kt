@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import com.hikobe8.androidmediaproject.audio.AudioRecordPlayActivity
+import com.hikobe8.androidmediaproject.camera.CameraBasicActivity
 import com.hikobe8.androidmediaproject.draw.DrawImageActivity
 
 class MainActivity : AppCompatActivity() {
@@ -19,6 +20,10 @@ class MainActivity : AppCompatActivity() {
 
     fun go2AudioRecordPlay(view: View) {
         AudioRecordPlayActivity.launch(this)
+    }
+
+    fun go2Camera(view: View) {
+        CameraBasicActivity.launch(this)
     }
 
 }
