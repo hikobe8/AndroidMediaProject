@@ -39,9 +39,6 @@ class CameraBasicActivity : AppCompatActivity() {
             if (!PermissionUtils.checkPermissionGranted(this, Manifest.permission.CAMERA)) {
                 permissionArray.add(Manifest.permission.CAMERA)
             }
-            if (!PermissionUtils.checkPermissionGranted(this, Manifest.permission.RECORD_AUDIO)) {
-                permissionArray.add(Manifest.permission.RECORD_AUDIO)
-            }
             if (!PermissionUtils.checkPermissionGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 permissionArray.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             }
@@ -70,13 +67,13 @@ class CameraBasicActivity : AppCompatActivity() {
     }
 
     private fun startCameraPreview() {
-        if (!checkCameraHardware(this)) {
+        if (!CameraUtils.checkCameraHardware(this)) {
             finish()
         } else {
             //Create an instance of Camera
-            mCamera = getCameraInstance()
+            mCamera = CameraUtils.getCameraInstance()
             mPreview = mCamera?.let {
-                CameraUtils.setCameraDisplayOrientation(this, 1, it)
+                CameraUtils.setCameraDisplayOrientation(this, 0, it)
                 CameraPreview(this, it)
             }
             mPreview?.also {
@@ -85,21 +82,6 @@ class CameraBasicActivity : AppCompatActivity() {
             button_capture.setOnClickListener {
                 mCamera?.takePicture(null, null, mPictureCallback)
             }
-        }
-    }
-
-    /** Check if this device has a camera */
-    private fun checkCameraHardware(context: Context): Boolean {
-        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)
-    }
-
-    /** A safe way to get an instance of the Camera object. */
-    private fun getCameraInstance(): Camera? {
-        return try {
-            Camera.open(1) // attempt to get a Camera instance
-        } catch (e: Exception) {
-            // Camera is not available (in use or does not exist)
-            null // returns null if camera is unavailable
         }
     }
 

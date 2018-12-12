@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import com.hikobe8.androidmediaproject.audio.AudioRecordPlayActivity
 import com.hikobe8.androidmediaproject.camera.CameraBasicActivity
+import com.hikobe8.androidmediaproject.camera.CameraRecordActivity
 import com.hikobe8.androidmediaproject.draw.DrawImageActivity
 
 class MainActivity : AppCompatActivity() {
@@ -22,8 +23,12 @@ class MainActivity : AppCompatActivity() {
         AudioRecordPlayActivity.launch(this)
     }
 
-    fun go2Camera(view: View) {
+    fun go2CameraCapture(view: View) {
         CameraBasicActivity.launch(this)
+    }
+
+    fun go2CameraRecord(view: View) {
+        CameraRecordActivity.launch(this)
     }
 
 }

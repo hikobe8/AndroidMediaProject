@@ -146,6 +146,23 @@ object PcmToWavUtil {
 class CameraUtils {
 
     companion object {
+
+        /** Check if this device has a camera */
+        fun checkCameraHardware(context: Context): Boolean {
+            return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)
+        }
+
+        /** A safe way to get an instance of the Camera object. */
+        fun getCameraInstance(): Camera? {
+            return try {
+                Camera.open(0) // attempt to get a Camera instance
+            } catch (e: Exception) {
+                // Camera is not available (in use or does not exist)
+                null // returns null if camera is unavailable
+            }
+        }
+
+
         fun setCameraDisplayOrientation(
             activity: Activity,
             cameraId: Int, camera: android.hardware.Camera

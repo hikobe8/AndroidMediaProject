@@ -22,9 +22,16 @@
             android:layout_height="wrap_content"/>
 
     <Button
-            android:text="Camera预览"
+            android:text="Camera拍照"
             android:textAllCaps="false"
-            android:onClick="go2Camera"
+            android:onClick="go2CameraCapture"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    <Button
+            android:text="Camera录像"
+            android:textAllCaps="false"
+            android:onClick="go2CameraRecord"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
