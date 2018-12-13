@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">AndroidMediaProject</string>
     <string name="title_draw_image">绘制图片</string>
+    <string name="text_video_extraction">提取无声mp4</string>
     <string name="text_recording">正在录音 : %d s</string>
     <string name="text_recording_video">正在录像 : %s</string>
 </resources>

@@ -7,6 +7,7 @@ import com.hikobe8.androidmediaproject.audio.AudioRecordPlayActivity
 import com.hikobe8.androidmediaproject.camera.CameraBasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraRecordActivity
 import com.hikobe8.androidmediaproject.draw.DrawImageActivity
+import com.hikobe8.androidmediaproject.media.ExtractMuteVideoActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,6 +30,10 @@ class MainActivity : AppCompatActivity() {
 
     fun go2CameraRecord(view: View) {
         CameraRecordActivity.launch(this)
+    }
+
+    fun go2MP4Extraction(view: View) {
+        ExtractMuteVideoActivity.launch(this)
     }
 
 }

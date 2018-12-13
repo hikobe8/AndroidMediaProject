@@ -35,4 +35,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
+    <Button
+            android:text="提取无声MP4"
+            android:textAllCaps="false"
+            android:onClick="go2MP4Extraction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
 </LinearLayout>

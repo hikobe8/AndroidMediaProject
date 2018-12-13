@@ -33,9 +33,12 @@
                 android:screenOrientation="portrait"
                 android:theme="@style/AppTheme.FullScreen">
         </activity>
-        <activity android:name=".camera.CameraRecordActivity"
-                  android:screenOrientation="portrait"
-                  android:theme="@style/AppTheme.FullScreen">
+        <activity
+                android:name=".camera.CameraRecordActivity"
+                android:screenOrientation="portrait"
+                android:theme="@style/AppTheme.FullScreen">
+        </activity>
+        <activity android:name=".media.ExtractMuteVideoActivity">
         </activity>
     </application>
 
