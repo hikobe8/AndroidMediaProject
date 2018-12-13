@@ -212,7 +212,7 @@ class CameraRecordActivity : AppCompatActivity() {
     private fun getOutputMediaFile(): File? {
 
         return try {
-            val videoFile = File(FileUtils.getStorageDir(), "${System.currentTimeMillis()}.mp4")
+            val videoFile = File(FileUtils.getCameraDir(), "${System.currentTimeMillis()}.mp4")
             if (!videoFile.exists()) {
                 videoFile.createNewFile()
             }

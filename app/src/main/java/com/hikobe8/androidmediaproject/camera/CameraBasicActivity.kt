@@ -87,7 +87,7 @@ class CameraBasicActivity : AppCompatActivity() {
 
     private val mPictureCallback = Camera.PictureCallback { data, _ ->
         Observable.create(ObservableOnSubscribe<String> {
-            val pictureFile = File(FileUtils.getStorageDir(), System.currentTimeMillis().toString() + ".jpeg")
+            val pictureFile = File(FileUtils.getCameraDir(), System.currentTimeMillis().toString() + ".jpeg")
             if (!pictureFile.exists())
                 pictureFile.createNewFile()
             var fos: FileOutputStream? = null

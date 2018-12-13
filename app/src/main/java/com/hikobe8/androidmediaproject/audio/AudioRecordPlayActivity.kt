@@ -172,7 +172,7 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
         rv_audios.adapter = mRecordAdapter
         rv_audios.addItemDecoration(DividerItemDecoration(mActivity, RecyclerView.VERTICAL))
         Observable.create(ObservableOnSubscribe<AudioRecordBean> {
-            val rootDir = File(FileUtils.getStorageDir())
+            val rootDir = File(FileUtils.getAudioRecordDir())
             val files = rootDir.listFiles()
             for (file in files) {
                 it.onNext(

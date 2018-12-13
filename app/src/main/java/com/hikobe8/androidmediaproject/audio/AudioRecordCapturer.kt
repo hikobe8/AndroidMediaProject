@@ -95,7 +95,7 @@ class AudioRecordCapturer {
         override fun run() {
             var fos: BufferedOutputStream? = null
             try {
-                val file = File(FileUtils.getStorageDir(), mFileName)
+                val file = File(FileUtils.getAudioRecordDir(), mFileName)
                 if (!file.exists()) {
                     file.createNewFile()
                 }

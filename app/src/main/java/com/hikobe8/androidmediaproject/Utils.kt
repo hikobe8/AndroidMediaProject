@@ -50,6 +50,21 @@ class FileUtils {
                 dir.mkdirs()
             return dir.absolutePath
         }
+
+        fun getAudioRecordDir():String = getStorageDir().let {
+            val dir = File(it, "record")
+            if (!dir.exists())
+                dir.mkdir()
+            dir.absolutePath
+        }
+
+        fun getCameraDir():String = getStorageDir().let {
+            val dir = File(it, "camera")
+            if (!dir.exists())
+                dir.mkdir()
+            dir.absolutePath
+        }
+
     }
 }
 
