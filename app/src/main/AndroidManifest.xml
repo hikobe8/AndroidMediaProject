@@ -41,9 +41,9 @@
         <activity android:name=".media.ExtractMuteVideoActivity">
         </activity>
         <activity
-                android:name=".camera.Camera2BasicActivity"
+                android:name=".camera.camera2.Camera2BasicActivity"
                 android:label="@string/title_activity_camera2_basic"
-                android:theme="@style/AppTheme">
+                android:theme="@style/AppTheme.FullScreen">
         </activity>
     </application>
 

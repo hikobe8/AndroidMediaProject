@@ -42,4 +42,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
+    <Button
+            android:text="Camera2拍照/录像"
+            android:textAllCaps="false"
+            android:onClick="go2Camera2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
 </LinearLayout>
