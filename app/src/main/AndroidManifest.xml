@@ -40,6 +40,11 @@
         </activity>
         <activity android:name=".media.ExtractMuteVideoActivity">
         </activity>
+        <activity
+                android:name=".camera.Camera2BasicActivity"
+                android:label="@string/title_activity_camera2_basic"
+                android:theme="@style/AppTheme">
+        </activity>
     </application>
 
 </manifest>

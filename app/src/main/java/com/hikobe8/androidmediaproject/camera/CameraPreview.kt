@@ -28,6 +28,7 @@ class CameraPreview(context: Context, private val mCamera: Camera) : SurfaceView
             try {
                 setPreviewDisplay(holder)
                 startPreview()
+                this@CameraPreview.startFaceDetection()
             } catch (e: IOException) {
                 Log.d(TAG, "Error setting camera preview: ${e.message}")
             }
@@ -56,6 +57,7 @@ class CameraPreview(context: Context, private val mCamera: Camera) : SurfaceView
             try {
                 setPreviewDisplay(mHolder)
                 startPreview()
+                this@CameraPreview.startFaceDetection()
             } catch (e: Exception) {
                 Log.e(TAG, "Error starting camera preview: ${e.message}")
             }
@@ -64,6 +66,16 @@ class CameraPreview(context: Context, private val mCamera: Camera) : SurfaceView
 
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
 
+    }
+
+    private fun startFaceDetection(){
+        val params = mCamera.parameters
+
+        params.apply {
+            if (maxNumDetectedFaces > 0) {
+                mCamera.startFaceDetection()
+            }
+        }
     }
 
     private fun getOptimalSize(sizes:List<Camera.Size>, w:Int, h:Int):Camera.Size? {

@@ -170,7 +170,7 @@ class CameraUtils {
         /** A safe way to get an instance of the Camera object. */
         fun getCameraInstance(): Camera? {
             return try {
-                Camera.open(0) // attempt to get a Camera instance
+                Camera.open(1) // attempt to get a Camera instance
             } catch (e: Exception) {
                 // Camera is not available (in use or does not exist)
                 null // returns null if camera is unavailable
@@ -181,7 +181,7 @@ class CameraUtils {
         fun setCameraDisplayOrientation(
             activity: Activity,
             cameraId: Int, camera: android.hardware.Camera
-        ) {
+        ) : Int {
             val info = android.hardware.Camera.CameraInfo()
             android.hardware.Camera.getCameraInfo(cameraId, info)
             val rotation = activity.windowManager.defaultDisplay
@@ -202,6 +202,7 @@ class CameraUtils {
                 result = (info.orientation - degrees + 360) % 360
             }
             camera.setDisplayOrientation(result)
+            return result
         }
     }
 

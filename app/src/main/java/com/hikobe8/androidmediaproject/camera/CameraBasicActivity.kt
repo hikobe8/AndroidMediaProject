@@ -3,11 +3,13 @@ package com.hikobe8.androidmediaproject.camera
 import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.graphics.Matrix
+import android.graphics.RectF
 import android.hardware.Camera
 import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.widget.Toast
 import com.hikobe8.androidmediaproject.CameraUtils
 import com.hikobe8.androidmediaproject.FileUtils
@@ -66,6 +68,19 @@ class CameraBasicActivity : AppCompatActivity() {
         startCameraPreview()
     }
 
+    private val mFaceDetectionListener:Camera.FaceDetectionListener = Camera.FaceDetectionListener { faces, camera ->
+        if (faces.isNotEmpty()) {
+            val result = RectF()
+            matrix?.mapRect(result, RectF(faces[0].rect))
+            Log.d("FaceDetection", ("face detected: ${faces.size}" +
+                    " Face 1 Location X: ${result.centerX()}" +
+                    " Y: ${result.centerY()}"))
+            face_detection_view.update(result)
+        }
+    }
+
+    private var matrix: Matrix? = null
+
     private fun startCameraPreview() {
         if (!CameraUtils.checkCameraHardware(this)) {
             finish()
@@ -73,7 +88,23 @@ class CameraBasicActivity : AppCompatActivity() {
             //Create an instance of Camera
             mCamera = CameraUtils.getCameraInstance()
             mPreview = mCamera?.let {
-                CameraUtils.setCameraDisplayOrientation(this, 0, it)
+                it.setFaceDetectionListener(mFaceDetectionListener)
+                val displayOrientation = CameraUtils.setCameraDisplayOrientation(this, 1, it)
+                matrix = Matrix()
+                val info:Camera.CameraInfo = Camera.CameraInfo()
+                info.let {
+                    Camera.getCameraInfo(1, it)
+                }
+                // Need mirror for front camera.
+                val mirror = (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
+                matrix?.setScale(if (mirror) -1f else 1f, 1f)
+                // This is the value for android.hardware.Camera.setDisplayOrientation.
+                matrix?.postRotate(displayOrientation.toFloat())
+                // Camera driver coordinates range from (-1000, -1000) to (1000, 1000).
+                // UI coordinates range from (0, 0) to (width, height).
+                //这里写死的，测试机为小米note3 1920*1080
+                matrix?.postScale(1080 / 2000f, 1920 / 2000f)
+                matrix?.postTranslate(1080 / 2f, 1920 / 2f)
                 CameraPreview(this, it)
             }
             mPreview?.also {
