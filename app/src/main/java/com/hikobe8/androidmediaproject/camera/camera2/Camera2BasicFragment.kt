@@ -1,11 +1,15 @@
 package com.hikobe8.androidmediaproject.camera.camera2
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.ImageFormat
-import android.hardware.Camera
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
+import android.graphics.Point
+import android.graphics.SurfaceTexture
+import android.hardware.camera2.*
 import android.hardware.camera2.params.StreamConfigurationMap
+import android.media.Image
+import android.media.ImageReader
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -15,13 +19,18 @@ import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.util.Size
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import com.hikobe8.androidmediaproject.FileUtils
 import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.inflate
 import kotlinx.android.synthetic.main.activity_camera2_basic.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.lang.NullPointerException
 import java.util.*
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 /***
@@ -32,9 +41,161 @@ import kotlin.collections.ArrayList
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class Camera2BasicFragment : Fragment() {
 
+    companion object {
+        const val TAG = "Camera2BasicFragment"
+        const val MAX_PREVIEW_WIDTH = 1920
+        const val MAX_PREVIEW_HEIGHT = 1080
+
+        /**
+         * 得到
+         */
+        fun chooseOptimalSize(
+            choices: Array<Size>, textureViewWidth: Int,
+            textureViewHeight: Int, maxWidth: Int, maxHeight: Int, aspectRatio: Size
+        ): Size? {
+            val bigEnough = ArrayList<Size>()
+            val notBigEnough = ArrayList<Size>()
+
+            val w = aspectRatio.width
+            val h = aspectRatio.height
+
+            for (choice in choices) {
+
+                if (choice.width <= maxWidth && choice.height <= maxHeight
+                    && (choice.height - choice.width * h / w * 1f) < 0.001f
+                ) {
+                    if (choice.width >= textureViewWidth && choice.height >= textureViewHeight) {
+                        bigEnough.add(choice)
+                    } else {
+                        notBigEnough.add(choice)
+                    }
+                }
+
+            }
+
+            return when {
+                bigEnough.size > 0 -> {
+                    Collections.min(bigEnough, CompareSizesByArea())
+                }
+                notBigEnough.size > 0 -> {
+                    Collections.max(notBigEnough, CompareSizesByArea())
+                }
+                else -> {
+                    Log.e(TAG, "Couldn't find any suitable preview size")
+                    choices[0]
+                }
+            }
+
+        }
+
+    }
+
     private var mBackgroundThread: HandlerThread? = null
     private var mBackgroundHandler: Handler? = null
 
+    private val mSurfaceTextureListener = object :TextureView.SurfaceTextureListener{
+        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
+        }
+
+        override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
+        }
+
+        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean = true
+
+        override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
+            openCamera(width, height)
+        }
+
+    }
+
+    /**
+     * 用于静态图片获取，可以理解为拍照
+     */
+    private var mImageReader: ImageReader? = null
+
+    private var mFile: File? = null
+
+    private val mOnImageAvailableListener = ImageReader.OnImageAvailableListener {
+        mBackgroundHandler?.post(ImageSaver(it.acquireNextImage(), mFile))
+    }
+
+    /**
+     * 保存图片的任务
+     */
+    private class ImageSaver(private val image: Image, private val file: File?) : Runnable {
+
+        override fun run() {
+            val buffer = image.planes[0].buffer
+            val bytes = ByteArray(buffer.remaining())
+            buffer.get(bytes)
+            var output: FileOutputStream? = null
+            try {
+                output = FileOutputStream(file)
+                output.write(bytes)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            } finally {
+                image.close()
+                try {
+                    output?.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+    }
+
+    private var mSensorOrientation: Int? = null
+
+    /**
+     * 相机预览区域尺寸
+     */
+    private var mPreviewSize: Size? = null
+
+    private var mCameraId = ""
+
+    /**
+     * 是否支持闪光灯
+     */
+    private var mFlashSupported: Boolean = false
+
+    private var mCameraDevice: CameraDevice? = null
+
+    private val mCameraOpenCloseLock = Semaphore(1)
+
+    private val mStateCallback = object : CameraDevice.StateCallback() {
+
+        override fun onOpened(camera: CameraDevice) {
+            mCameraOpenCloseLock.release()
+            mCameraDevice = camera
+            createCameraPreviewSession()
+        }
+
+        override fun onDisconnected(camera: CameraDevice) {
+            mCameraOpenCloseLock.release()
+            camera.close()
+            mCameraDevice = null
+        }
+
+        override fun onError(camera: CameraDevice, error: Int) {
+            mCameraOpenCloseLock.release()
+            camera.close()
+            mCameraDevice = null
+            activity?.finish()
+        }
+
+    }
+
+    private var mPreviewRequestBuilder: CaptureRequest.Builder? = null
+
+    private var mCaptureSession: CameraCaptureSession? = null
+
+    private var mPreviewRequest: CaptureRequest? = null
+
+    private val mCaptureCallback = object : CameraCaptureSession.CaptureCallback() {
+
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return container?.inflate(R.layout.activity_camera2_basic, container)
@@ -50,6 +211,7 @@ class Camera2BasicFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        mFile = File(FileUtils.getCameraDir(), "camera2.jpeg")
     }
 
     override fun onResume() {
@@ -58,7 +220,7 @@ class Camera2BasicFragment : Fragment() {
         if (textureview.isAvailable) {
             openCamera(textureview.width, textureview.height)
         } else {
-
+            textureview.surfaceTextureListener = mSurfaceTextureListener
         }
     }
 
@@ -91,30 +253,164 @@ class Camera2BasicFragment : Fragment() {
             mBackgroundThread?.join()
             mBackgroundThread = null
             mBackgroundHandler = null
-        } catch (e:InterruptedException) {
+        } catch (e: InterruptedException) {
             e.printStackTrace()
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun openCamera(width: Int, height: Int) {
         setUpCameraOutputs(width, height)
+        val manager:CameraManager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        try {
+           if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
+               throw RuntimeException("Time out waiting to lock camera opening.")
+           }
+            manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler)
+        } catch (e:CameraAccessException) {
+            e.printStackTrace()
+        } catch (e:InterruptedException) {
+            throw RuntimeException("Interrupted while trying to lock camera opening.", e)
+        }
     }
 
     private fun setUpCameraOutputs(width: Int, height: Int) {
-        val manager:CameraManager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        for (cameraId in manager.cameraIdList) {
-            val characteristics:CameraCharacteristics = manager.getCameraCharacteristics(cameraId)
-            //这里只使用后置摄像头
-            val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
-            if(facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
-                continue
+        val manager: CameraManager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        try {
+            for (cameraId in manager.cameraIdList) {
+                val characteristics: CameraCharacteristics = manager.getCameraCharacteristics(cameraId)
+                //这里只使用后置摄像头
+                val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+                    continue
+                }
+                val map: StreamConfigurationMap =
+                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: continue
+                //使用最大的尺寸保证图片清晰度最高
+                val largest = Collections.max(map.getOutputSizes(ImageFormat.JPEG).toList(), CompareSizesByArea())
+                mImageReader = ImageReader.newInstance(largest.width, largest.height, ImageFormat.JPEG, 2)
+                mImageReader?.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler)
+
+                //调整屏幕与图像传感器的角度差
+                val displayRotation = activity?.windowManager?.defaultDisplay?.rotation
+                mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
+                var swappedDimensions = false
+                when (displayRotation) {
+                    Surface.ROTATION_0, Surface.ROTATION_180 -> {
+                        if (mSensorOrientation == 90 || mSensorOrientation == 270) {
+                            swappedDimensions = true
+                        }
+                    }
+                    Surface.ROTATION_90, Surface.ROTATION_270 -> {
+                        if (mSensorOrientation == 0 || mSensorOrientation == 180) {
+                            swappedDimensions = true
+                        }
+                    }
+                    else ->
+                        Log.e(TAG, "Display rotation is invalid: $displayRotation")
+                }
+                val displaySize = Point()
+                activity?.windowManager?.defaultDisplay?.getSize(displaySize)
+                var rotatedPreviewWidth = width
+                var rotatedPreviewHeight = height
+                var maxPreviewWidth = displaySize.x
+                var maxPreviewHeight = displaySize.y
+
+                if (swappedDimensions) {
+                    rotatedPreviewWidth = height
+                    rotatedPreviewHeight = width
+                    maxPreviewWidth = displaySize.y
+                    maxPreviewHeight = displaySize.x
+                }
+
+                if (maxPreviewWidth > MAX_PREVIEW_WIDTH) {
+                    maxPreviewWidth = MAX_PREVIEW_WIDTH
+                }
+
+                if (maxPreviewHeight > MAX_PREVIEW_HEIGHT) {
+                    maxPreviewHeight = MAX_PREVIEW_HEIGHT
+                }
+                mPreviewSize = chooseOptimalSize(
+                    map.getOutputSizes(ImageReader::class.java),
+                    rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth, maxPreviewHeight, largest
+                )
+
+                if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    textureview.setAspectRatio(mPreviewSize?.width!!, mPreviewSize?.height!!)
+                } else {
+                    textureview.setAspectRatio(mPreviewSize?.height!!, mPreviewSize?.width!!)
+                }
+
+                // Check if the flash is supported.
+                val available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)
+                mFlashSupported = available ?: false
+
+                mCameraId = cameraId
+                return
             }
-            val map:StreamConfigurationMap =
-                characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: continue
-            val largest = Collections.max(Arrays.asList(
-                map.getOutputSizes(ImageFormat.JPEG)) as ArrayList<Size>, CompareSizesByArea())
-            Log.e("test", largest.toString())
-            return
+        } catch (e: CameraAccessException) {
+            e.printStackTrace()
+        } catch (e: NullPointerException) {
+            //设备不支持Camera2 API可能会报空指针
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * 创建预览会话
+     */
+    private fun createCameraPreviewSession() {
+        try {
+            val texture = textureview.surfaceTexture!!
+
+            texture.setDefaultBufferSize(mPreviewSize?.width!!, mPreviewSize?.height!!)
+
+            //预览的surface
+            val surface = Surface(texture)
+            mPreviewRequestBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+            mPreviewRequestBuilder?.addTarget(surface)
+
+            mCameraDevice?.createCaptureSession(
+                Arrays.asList(surface, mImageReader?.surface),
+                object : CameraCaptureSession.StateCallback() {
+                    override fun onConfigureFailed(session: CameraCaptureSession) {
+                        //show a toast
+                    }
+
+                    override fun onConfigured(session: CameraCaptureSession) {
+                        if (null == mCameraDevice) {
+                            return
+                        }
+
+                        mCaptureSession = session
+
+                        try {
+                            mPreviewRequestBuilder?.set(
+                                CaptureRequest.CONTROL_AF_MODE,
+                                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                            )
+                            setAutoFlash(mPreviewRequestBuilder)
+                            mPreviewRequest = mPreviewRequestBuilder?.build()
+                            mPreviewRequest?.let {
+                                mCaptureSession?.setRepeatingRequest(it, mCaptureCallback, mBackgroundHandler)
+                            }
+                        } catch (e: CameraAccessException) {
+                            e.printStackTrace()
+                        }
+
+                    }
+
+                }, null
+            )
+
+        } catch (e: CameraAccessException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun setAutoFlash(previewRequestBuilder: CaptureRequest.Builder?) {
+        if (mFlashSupported) {
+            previewRequestBuilder?.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH)
         }
     }
 

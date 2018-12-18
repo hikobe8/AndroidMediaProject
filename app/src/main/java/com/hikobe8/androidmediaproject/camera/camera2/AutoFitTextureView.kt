@@ -36,9 +36,9 @@ class AutoFitTextureView(context: Context?, attrs: AttributeSet?, defStyleAttr: 
             setMeasuredDimension(width, height)
         } else {
             if (width < height * 1f * mRatioWidth / mRatioHeight) {
-                setMeasuredDimension(width, (height * 1f * mRatioWidth / mRatioHeight).toInt())
+                setMeasuredDimension(width, (width * 1f * mRatioWidth / mRatioHeight).toInt())
             } else {
-                setMeasuredDimension((width * 1f * mRatioHeight / mRatioWidth).toInt(), height)
+                setMeasuredDimension((height * 1f * mRatioWidth / mRatioHeight).toInt(), height)
             }
         }
 
