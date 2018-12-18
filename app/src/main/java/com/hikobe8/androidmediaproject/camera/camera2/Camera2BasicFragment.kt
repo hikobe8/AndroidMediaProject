@@ -15,11 +15,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.support.annotation.RequiresApi
-import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.util.Size
 import android.view.*
+import android.widget.Toast
 import com.hikobe8.androidmediaproject.FileUtils
 import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.inflate
@@ -204,8 +204,7 @@ class Camera2BasicFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         fab.setOnClickListener {
-            Snackbar.make(it, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+            takePicture()
         }
     }
 
@@ -419,6 +418,48 @@ class Camera2BasicFragment : Fragment() {
         override fun compare(o1: Size?, o2: Size?): Int {
             return o1?.width!! * o1.height - o2?.width!! * o2.height
         }
+    }
+
+    private fun takePicture() = lockFocus()
+
+
+    private fun lockFocus(){
+        try {
+            // This is the CaptureRequest.Builder that we use to take a picture.
+            val captureBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
+            captureBuilder?.addTarget(mImageReader?.surface!!)
+
+            // Use the same AE and AF modes as the preview.
+            captureBuilder?.set(
+                CaptureRequest.CONTROL_AF_MODE,
+                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+            )
+            setAutoFlash(captureBuilder)
+            val captureCallback = object : CameraCaptureSession.CaptureCallback() {
+
+                override fun onCaptureCompleted(
+                    session: CameraCaptureSession,
+                    request: CaptureRequest,
+                    result: TotalCaptureResult
+                ) {
+                    showToast("Saved: $mFile")
+                    Log.d(TAG, mFile.toString())
+                }
+            }
+            mCaptureSession?.capture(captureBuilder?.build()!!, captureCallback, null)
+        } catch (e:CameraAccessException) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * Shows a [Toast] on the UI thread.
+     *
+     * @param text The message to show
+     */
+    private fun showToast(text: String) {
+        val activity = activity
+        activity?.runOnUiThread { Toast.makeText(activity, text, Toast.LENGTH_SHORT).show() }
     }
 
 }
