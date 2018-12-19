@@ -46,6 +46,8 @@
         <activity
                 android:name=".camera.camera2.Camera2BasicActivity"
                 android:label="@string/title_activity_camera2_basic"
+                android:configChanges="orientation|keyboardHidden"
+                android:screenOrientation="portrait"
                 android:theme="@style/AppTheme.FullScreen">
         </activity>
     </application>

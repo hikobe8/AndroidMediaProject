@@ -18,6 +18,7 @@ import android.support.annotation.RequiresApi
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.util.Size
+import android.util.SparseIntArray
 import android.view.*
 import android.widget.Toast
 import com.hikobe8.androidmediaproject.FileUtils
@@ -88,12 +89,19 @@ class Camera2BasicFragment : Fragment() {
 
         }
 
+        private val ORIENTATIONS = SparseIntArray().apply {
+            append(Surface.ROTATION_0, 90)
+            append(Surface.ROTATION_90, 0)
+            append(Surface.ROTATION_180, 270)
+            append(Surface.ROTATION_270, 180)
+        }
+
     }
 
     private var mBackgroundThread: HandlerThread? = null
     private var mBackgroundHandler: Handler? = null
 
-    private val mSurfaceTextureListener = object :TextureView.SurfaceTextureListener{
+    private val mSurfaceTextureListener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
         }
 
@@ -146,7 +154,7 @@ class Camera2BasicFragment : Fragment() {
 
     }
 
-    private var mSensorOrientation: Int? = null
+    private var mSensorOrientation: Int = 0
 
     /**
      * 相机预览区域尺寸
@@ -225,7 +233,30 @@ class Camera2BasicFragment : Fragment() {
 
     override fun onPause() {
         stopBackgroundThread()
+        closeCamera()
         super.onPause()
+    }
+
+    private fun closeCamera() {
+        try {
+            mCameraOpenCloseLock.acquire()
+            if (null != mCaptureSession) {
+                mCaptureSession?.close()
+                mCaptureSession = null
+            }
+            if (null != mCameraDevice) {
+                mCameraDevice?.close()
+                mCameraDevice = null
+            }
+            if (null != mImageReader) {
+                mImageReader?.close()
+                mImageReader = null
+            }
+        } catch (e: InterruptedException) {
+            throw RuntimeException("Interrupted while trying to lock camera closing.", e)
+        } finally {
+            mCameraOpenCloseLock.release()
+        }
     }
 
     /**
@@ -260,15 +291,15 @@ class Camera2BasicFragment : Fragment() {
     @SuppressLint("MissingPermission")
     private fun openCamera(width: Int, height: Int) {
         setUpCameraOutputs(width, height)
-        val manager:CameraManager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val manager: CameraManager = activity?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
-           if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
-               throw RuntimeException("Time out waiting to lock camera opening.")
-           }
+            if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
+                throw RuntimeException("Time out waiting to lock camera opening.")
+            }
             manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler)
-        } catch (e:CameraAccessException) {
+        } catch (e: CameraAccessException) {
             e.printStackTrace()
-        } catch (e:InterruptedException) {
+        } catch (e: InterruptedException) {
             throw RuntimeException("Interrupted while trying to lock camera opening.", e)
         }
     }
@@ -285,10 +316,6 @@ class Camera2BasicFragment : Fragment() {
                 }
                 val map: StreamConfigurationMap =
                     characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: continue
-                //使用最大的尺寸保证图片清晰度最高
-                val largest = Collections.max(map.getOutputSizes(ImageFormat.JPEG).toList(), CompareSizesByArea())
-                mImageReader = ImageReader.newInstance(largest.width, largest.height, ImageFormat.JPEG, 2)
-                mImageReader?.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler)
 
                 //调整屏幕与图像传感器的角度差
                 val displayRotation = activity?.windowManager?.defaultDisplay?.rotation
@@ -329,11 +356,21 @@ class Camera2BasicFragment : Fragment() {
                 if (maxPreviewHeight > MAX_PREVIEW_HEIGHT) {
                     maxPreviewHeight = MAX_PREVIEW_HEIGHT
                 }
+
+                //使用最大的尺寸保证图片清晰度最高，并且拍摄的图片宽高比要和预览一致
+                val filter = map.getOutputSizes(ImageFormat.JPEG)
+                    .filter {
+                        Math.abs((it.width - it.height * rotatedPreviewWidth * 1f / rotatedPreviewHeight)) < 0.01f
+                    }
+                val largest = Collections.max(filter, CompareSizesByArea())
+                mImageReader = ImageReader.newInstance(largest.width, largest.height, ImageFormat.JPEG, 2)
+                mImageReader?.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler)
+
+                //设置预览尺寸
                 mPreviewSize = chooseOptimalSize(
-                    map.getOutputSizes(ImageReader::class.java),
+                    map.getOutputSizes(SurfaceTexture::class.java),
                     rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth, maxPreviewHeight, largest
                 )
-
                 if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     textureview.setAspectRatio(mPreviewSize?.width!!, mPreviewSize?.height!!)
                 } else {
@@ -407,9 +444,9 @@ class Camera2BasicFragment : Fragment() {
         }
     }
 
-    private fun setAutoFlash(previewRequestBuilder: CaptureRequest.Builder?) {
+    private fun setAutoFlash(requestBuilder: CaptureRequest.Builder?) {
         if (mFlashSupported) {
-            previewRequestBuilder?.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH)
+            requestBuilder?.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH)
         }
     }
 
@@ -420,10 +457,7 @@ class Camera2BasicFragment : Fragment() {
         }
     }
 
-    private fun takePicture() = lockFocus()
-
-
-    private fun lockFocus(){
+    private fun takePicture() {
         try {
             // This is the CaptureRequest.Builder that we use to take a picture.
             val captureBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
@@ -433,6 +467,12 @@ class Camera2BasicFragment : Fragment() {
             captureBuilder?.set(
                 CaptureRequest.CONTROL_AF_MODE,
                 CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+            )
+            //设置拍摄的图片的方向
+            captureBuilder?.set(
+                CaptureRequest.JPEG_ORIENTATION,
+                //当前应用屏幕方向锁死为竖屏， 所以根据传感器方向来确定图片方向
+                getOrientation((activity as Camera2BasicActivity).mOritentation)
             )
             setAutoFlash(captureBuilder)
             val captureCallback = object : CameraCaptureSession.CaptureCallback() {
@@ -447,7 +487,7 @@ class Camera2BasicFragment : Fragment() {
                 }
             }
             mCaptureSession?.capture(captureBuilder?.build()!!, captureCallback, null)
-        } catch (e:CameraAccessException) {
+        } catch (e: CameraAccessException) {
             e.printStackTrace()
         }
     }
@@ -460,6 +500,10 @@ class Camera2BasicFragment : Fragment() {
     private fun showToast(text: String) {
         val activity = activity
         activity?.runOnUiThread { Toast.makeText(activity, text, Toast.LENGTH_SHORT).show() }
+    }
+
+    private fun getOrientation(orientation: Int): Int {
+        return (ORIENTATIONS.get(orientation) + mSensorOrientation + 360) % 360
     }
 
 }
