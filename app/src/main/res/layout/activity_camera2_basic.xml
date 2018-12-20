@@ -21,4 +21,18 @@
             android:layout_margin="@dimen/fab_margin"
             app:srcCompat="@android:drawable/ic_menu_camera"/>
 
+    <ImageButton
+            android:layout_gravity="right"
+            android:layout_margin="16dp"
+            android:id="@+id/ib_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_switch"
+            style="?actionButtonStyle"/>
+
+    <com.hikobe8.androidmediaproject.camera.FaceDetectionView
+            android:id="@+id/face_detection_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
 </FrameLayout>

@@ -90,12 +90,12 @@ class CameraBasicActivity : AppCompatActivity() {
             mPreview = mCamera?.let {
                 it.setFaceDetectionListener(mFaceDetectionListener)
                 val displayOrientation = CameraUtils.setCameraDisplayOrientation(this, 1, it)
-                matrix = Matrix()
                 val info:Camera.CameraInfo = Camera.CameraInfo()
                 info.let {
                     Camera.getCameraInfo(1, it)
                 }
                 // Need mirror for front camera.
+                matrix = Matrix()
                 val mirror = (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
                 matrix?.setScale(if (mirror) -1f else 1f, 1f)
                 // This is the value for android.hardware.Camera.setDisplayOrientation.

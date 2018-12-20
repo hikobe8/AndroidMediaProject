@@ -3,10 +3,9 @@ package com.hikobe8.androidmediaproject.camera.camera2
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.ImageFormat
-import android.graphics.Point
-import android.graphics.SurfaceTexture
+import android.graphics.*
 import android.hardware.camera2.*
+import android.hardware.camera2.params.Face
 import android.hardware.camera2.params.StreamConfigurationMap
 import android.media.Image
 import android.media.ImageReader
@@ -28,7 +27,6 @@ import kotlinx.android.synthetic.main.activity_camera2_basic.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.NullPointerException
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -63,8 +61,8 @@ class Camera2BasicFragment : Fragment() {
             for (choice in choices) {
 
                 if (choice.width <= maxWidth && choice.height <= maxHeight
-                    && (choice.height - choice.width * h / w * 1f) < 0.001f
-                ) {
+                    && (choice.height - choice.width * h / w * 1f) < 0.001f)
+                {
                     if (choice.width >= textureViewWidth && choice.height >= textureViewHeight) {
                         bigEnough.add(choice)
                     } else {
@@ -201,9 +199,46 @@ class Camera2BasicFragment : Fragment() {
 
     private var mPreviewRequest: CaptureRequest? = null
 
+    private var mOpenFrontCamera = false //默认打开后置摄像头
+
     private val mCaptureCallback = object : CameraCaptureSession.CaptureCallback() {
 
+        private fun process(result: CaptureResult) {
+
+            val mode = result.get(CaptureResult.STATISTICS_FACE_DETECT_MODE)
+            val faces: Array<Face>? = result.get(CaptureResult.STATISTICS_FACES)
+            if (faces != null && mode != null) {
+                if (faces.isNotEmpty()) {
+                    Log.i(TAG, "faces : " + faces.size + " , mode : " + mode)
+                    Log.e(TAG, "${faces[0].bounds}, score = ${faces[0].score}")
+                    val detectionResult = RectF()
+                    mFaceDetectionMatrix.mapRect(detectionResult, RectF(faces[0].bounds))
+                    face_detection_view.update(detectionResult)
+                }
+            }
+
+        }
+
+        override fun onCaptureCompleted(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            result: TotalCaptureResult
+        ) {
+            super.onCaptureCompleted(session, request, result)
+            process(result)
+        }
+
+        override fun onCaptureProgressed(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            partialResult: CaptureResult
+        ) {
+            super.onCaptureProgressed(session, request, partialResult)
+            process(partialResult)
+        }
     }
+
+    private lateinit var mFaceDetectionMatrix: Matrix
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return container?.inflate(R.layout.activity_camera2_basic, container)
@@ -213,6 +248,16 @@ class Camera2BasicFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         fab.setOnClickListener {
             takePicture()
+        }
+        ib_switch.setOnClickListener {
+            mOpenFrontCamera = !mOpenFrontCamera
+            stopBackgroundThread()
+            closeCamera()
+            if (textureview.isAvailable) {
+                openCamera(textureview.width, textureview.height)
+            } else {
+                textureview.surfaceTextureListener = mSurfaceTextureListener
+            }
         }
     }
 
@@ -232,8 +277,8 @@ class Camera2BasicFragment : Fragment() {
     }
 
     override fun onPause() {
-        stopBackgroundThread()
         closeCamera()
+        stopBackgroundThread()
         super.onPause()
     }
 
@@ -309,9 +354,9 @@ class Camera2BasicFragment : Fragment() {
         try {
             for (cameraId in manager.cameraIdList) {
                 val characteristics: CameraCharacteristics = manager.getCameraCharacteristics(cameraId)
-                //这里只使用后置摄像头
+                //打开前置摄像头
                 val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+                if (facing != null && facing == if (mOpenFrontCamera) CameraCharacteristics.LENS_FACING_BACK else CameraCharacteristics.LENS_FACING_FRONT) {
                     continue
                 }
                 val map: StreamConfigurationMap =
@@ -336,6 +381,7 @@ class Camera2BasicFragment : Fragment() {
                         Log.e(TAG, "Display rotation is invalid: $displayRotation")
                 }
                 val displaySize = Point()
+                //使用屏幕的宽高
                 activity?.windowManager?.defaultDisplay?.getSize(displaySize)
                 var rotatedPreviewWidth = width
                 var rotatedPreviewHeight = height
@@ -371,6 +417,25 @@ class Camera2BasicFragment : Fragment() {
                     map.getOutputSizes(SurfaceTexture::class.java),
                     rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth, maxPreviewHeight, largest
                 )
+
+                val orientationOffset = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
+                val activeArraySizeRect =
+                    characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)
+
+                // Need mirror for front camera.
+                mFaceDetectionMatrix = Matrix()
+                val mirror = facing == CameraCharacteristics.LENS_FACING_FRONT
+                mFaceDetectionMatrix.setRotate(orientationOffset?.toFloat() ?: 0f)
+
+                val s1Left = mPreviewSize?.width?.toFloat() ?: 1f
+                val s1Right = activeArraySizeRect?.width()?.toFloat() ?: 1f
+                val s1 = s1Left / s1Right
+
+                val s2Left = mPreviewSize?.height?.toFloat() ?: 1f
+                val s2Right = activeArraySizeRect?.height()?.toFloat() ?: 1f
+                val s2 = s2Left / s2Right
+                mFaceDetectionMatrix.postScale(if (mirror) -s1 else s1, s2)
+                mFaceDetectionMatrix.postTranslate(mPreviewSize?.height?.toFloat()?:1f, mPreviewSize?.width?.toFloat()?:1f)
                 if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     textureview.setAspectRatio(mPreviewSize?.width!!, mPreviewSize?.height!!)
                 } else {
@@ -421,9 +486,13 @@ class Camera2BasicFragment : Fragment() {
                         mCaptureSession = session
 
                         try {
+//                            mPreviewRequestBuilder?.set(
+//                                CaptureRequest.CONTROL_AF_MODE,
+//                                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+//                            )
                             mPreviewRequestBuilder?.set(
-                                CaptureRequest.CONTROL_AF_MODE,
-                                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                                CaptureRequest.STATISTICS_FACE_DETECT_MODE,
+                                CameraMetadata.STATISTICS_FACE_DETECT_MODE_FULL
                             )
                             setAutoFlash(mPreviewRequestBuilder)
                             mPreviewRequest = mPreviewRequestBuilder?.build()
