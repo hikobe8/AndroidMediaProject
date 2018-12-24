@@ -5,20 +5,17 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.hardware.Camera
-import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.widget.ImageButton
 import com.hikobe8.androidmediaproject.*
 import com.hikobe8.androidmediaproject.camera.CameraPreview
 import kotlinx.android.synthetic.main.activity_camera_record.*
 import java.io.File
-import java.io.IOException
 import java.lang.ref.WeakReference
 
 class CameraRecordWithCodecActivity : AppCompatActivity() {
@@ -126,7 +123,6 @@ class CameraRecordWithCodecActivity : AppCompatActivity() {
 //                    mMediaRecorder?.stop()
                     mTimeHandler.stop()
 //                    releaseMediaRecorder()
-                    mCamera?.lock() // take camera access back from MediaRecorder
                     it.setImageResource(R.drawable.ic_video_call_black_24dp)
                     mIsRecording = false
                 } else {

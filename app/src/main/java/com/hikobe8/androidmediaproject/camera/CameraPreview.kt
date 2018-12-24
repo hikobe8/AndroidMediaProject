@@ -49,7 +49,7 @@ class CameraPreview(context: Context, private val mCamera: Camera) : SurfaceView
         // reformatting changes here
         val parameters = mCamera.parameters
         val optimalSize = getOptimalSize(mCamera.parameters.supportedPreviewSizes, width, height)
-        parameters?.focusMode = Camera.Parameters.FOCUS_MODE_AUTO
+        parameters?.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO
         optimalSize?.let { parameters.setPreviewSize(it.width, it.height) }
         mCamera.parameters = parameters
         // start preview with new settings
