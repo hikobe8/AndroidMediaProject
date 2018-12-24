@@ -1,4 +1,4 @@
-package com.hikobe8.androidmediaproject.camera
+package com.hikobe8.androidmediaproject.mediacodec
 
 import android.content.Context
 import android.graphics.ImageFormat
@@ -12,16 +12,23 @@ import java.lang.Exception
 /***
  *  Author : ryu18356@gmail.com
  *  Create at 2018-12-12 10:28
- *  description : 使用Camera实现的相机预览view
+ *  description : 使用Camera实现的相机预览view for video recording
  */
-class CameraPreview(context: Context, private val mCamera: Camera) : SurfaceView(context), SurfaceHolder.Callback {
+class CameraVideoPreview(context: Context, private val mCamera: Camera) : SurfaceView(context), SurfaceHolder.Callback {
 
     companion object {
         const val TAG = "CameraPreview"
     }
 
     private val mHolder = holder.apply {
-        addCallback(this@CameraPreview)
+        addCallback(this@CameraVideoPreview)
+    }
+
+    var mOnPreviewStateListener:OnPreviewStateListener?=null
+
+    interface OnPreviewStateListener{
+        fun onStartPreview(width: Int, height: Int)
+        fun onStopPreview()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
@@ -29,7 +36,8 @@ class CameraPreview(context: Context, private val mCamera: Camera) : SurfaceView
             try {
                 setPreviewDisplay(holder)
                 startPreview()
-                this@CameraPreview.startFaceDetection()
+                mOnPreviewStateListener?.onStartPreview(0,0)
+                this@CameraVideoPreview.startFaceDetection()
             } catch (e: IOException) {
                 Log.d(TAG, "Error setting camera preview: ${e.message}")
             }
@@ -45,7 +53,7 @@ class CameraPreview(context: Context, private val mCamera: Camera) : SurfaceView
         } catch (e: Exception) {
             // ignore: tried to stop a non-existent preview
         }
-
+        mOnPreviewStateListener?.onStopPreview()
         // set preview size and make any resize, rotate or
         // reformatting changes here
         val parameters = mCamera.parameters
@@ -59,7 +67,8 @@ class CameraPreview(context: Context, private val mCamera: Camera) : SurfaceView
             try {
                 setPreviewDisplay(mHolder)
                 startPreview()
-                this@CameraPreview.startFaceDetection()
+                mOnPreviewStateListener?.onStartPreview(optimalSize?.width ?: 0, optimalSize?.height ?: 0)
+                this@CameraVideoPreview.startFaceDetection()
             } catch (e: Exception) {
                 Log.e(TAG, "Error starting camera preview: ${e.message}")
             }

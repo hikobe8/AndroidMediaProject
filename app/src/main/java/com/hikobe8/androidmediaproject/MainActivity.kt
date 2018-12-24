@@ -10,6 +10,7 @@ import com.hikobe8.androidmediaproject.camera.CameraBasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraRecordActivity
 import com.hikobe8.androidmediaproject.draw.DrawImageActivity
 import com.hikobe8.androidmediaproject.media.ExtractMuteVideoActivity
+import com.hikobe8.androidmediaproject.mediacodec.CameraRecordWithCodecActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,6 +45,10 @@ class MainActivity : AppCompatActivity() {
 
     fun go2AudioRecordPlayAAC(view: View) {
         AudioRecordPlayWithCodecActivity.launch(this)
+    }
+
+    fun go2RecordH264(view:View) {
+        CameraRecordWithCodecActivity.launch(this)
     }
 
 }

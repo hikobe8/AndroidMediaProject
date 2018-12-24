@@ -56,4 +56,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
+    <Button
+            android:text="使用MediaCodec录制H.264视频"
+            android:textAllCaps="false"
+            android:onClick="go2RecordH264"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
 </LinearLayout>
