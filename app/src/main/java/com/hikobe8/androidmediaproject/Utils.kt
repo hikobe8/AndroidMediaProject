@@ -163,7 +163,7 @@ class CameraUtils {
         /** A safe way to get an instance of the Camera object. */
         fun getCameraInstance(): Camera? {
             return try {
-                Camera.open(1) // attempt to get a Camera instance
+                Camera.open(0) // attempt to get a Camera instance
             } catch (e: Exception) {
                 // Camera is not available (in use or does not exist)
                 null // returns null if camera is unavailable

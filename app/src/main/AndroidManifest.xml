@@ -50,7 +50,8 @@
                 android:screenOrientation="portrait"
                 android:theme="@style/AppTheme.FullScreen">
         </activity>
-        <activity android:name=".audio.AudioRecordPlayWithCodecActivity"/>
+        <activity android:name=".mediacodec.AudioRecordPlayWithCodecActivity"/>
+        <activity android:name=".mediacodec.CameraRecordWithCodecActivity"/>
     </application>
 
 </manifest>

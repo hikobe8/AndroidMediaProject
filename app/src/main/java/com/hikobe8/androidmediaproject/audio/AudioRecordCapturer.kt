@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.support.annotation.RequiresApi
 import android.text.TextUtils
 import android.util.Log
+import com.hikobe8.androidmediaproject.AudioEncoder
 import com.hikobe8.androidmediaproject.FileUtils
 import com.hikobe8.androidmediaproject.fileName
 import java.io.BufferedOutputStream
@@ -33,7 +34,7 @@ class AudioRecordCapturer() {
         const val DEFAULT_CHANNEL_FORMAT = AudioFormat.ENCODING_PCM_16BIT
     }
 
-    private var mEncoder:AudioEncoder ?= null
+    private var mEncoder: AudioEncoder?= null
     private var mAudioRecorder: AudioRecord? = null
     private var mMinBufferSize = 0
     private var mLoopStarted = false

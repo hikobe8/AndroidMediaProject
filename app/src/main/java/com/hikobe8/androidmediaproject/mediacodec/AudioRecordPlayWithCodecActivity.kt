@@ -1,4 +1,4 @@
-package com.hikobe8.androidmediaproject.audio
+package com.hikobe8.androidmediaproject.mediacodec
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -14,7 +14,11 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import com.hikobe8.androidmediaproject.*
+import com.hikobe8.androidmediaproject.audio.AudioAdapter
+import com.hikobe8.androidmediaproject.audio.AudioRecordBean
+import com.hikobe8.androidmediaproject.audio.AudioRecordCapturer
 import com.hikobe8.androidmediaproject.audio.AudioRecordCapturer.Companion.DEFAULT_SAMPLE_SIZE
+import com.hikobe8.androidmediaproject.audio.AudioTrackPlayer
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Observer
@@ -32,8 +36,10 @@ import java.lang.ref.WeakReference
  * Time : 2018/12/21 11:22 AM
  * Description : 使用MediaCodec编码PCM音频数据为aac格式文件,并且解码aac为PCM并通过AudioTrack播放
  */
-class AudioRecordPlayWithCodecActivity : BaseActivity(), View.OnClickListener, AudioAdapter.OnItemClickListener,
-    AudioRecordCapturer.OnRecordCompleteListener, AudioTrackPlayer.OnPlayCompletelyListener {
+class AudioRecordPlayWithCodecActivity : BaseActivity(), View.OnClickListener,
+    AudioAdapter.OnItemClickListener,
+    AudioRecordCapturer.OnRecordCompleteListener,
+    AudioTrackPlayer.OnPlayCompletelyListener {
 
     override fun onPlayCompletely() {
         runOnUiThread {
@@ -108,7 +114,7 @@ class AudioRecordPlayWithCodecActivity : BaseActivity(), View.OnClickListener, A
         TimerHandler(this)
     }
 
-    private val mAudioTrackPlayer:AudioTrackPlayer by lazy {
+    private val mAudioTrackPlayer: AudioTrackPlayer by lazy {
         val audioTrackPlayer = AudioTrackPlayer()
         audioTrackPlayer.mOnPlayCompletelyListener = this
         audioTrackPlayer

@@ -4,7 +4,7 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import com.hikobe8.androidmediaproject.audio.AudioRecordPlayActivity
-import com.hikobe8.androidmediaproject.audio.AudioRecordPlayWithCodecActivity
+import com.hikobe8.androidmediaproject.mediacodec.AudioRecordPlayWithCodecActivity
 import com.hikobe8.androidmediaproject.camera.camera2.Camera2BasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraBasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraRecordActivity

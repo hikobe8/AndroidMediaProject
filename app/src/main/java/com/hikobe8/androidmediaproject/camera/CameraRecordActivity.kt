@@ -21,6 +21,11 @@ import java.io.File
 import java.io.IOException
 import java.lang.Exception
 import java.lang.ref.WeakReference
+import android.hardware.Camera.CameraInfo
+import android.hardware.Camera.getCameraInfo
+import android.view.OrientationEventListener
+
+
 
 class CameraRecordActivity : AppCompatActivity() {
 
@@ -169,6 +174,44 @@ class CameraRecordActivity : AppCompatActivity() {
                 setPreviewDisplay(mPreview?.holder?.surface)
                 // Step 6: Prepare configured MediaRecorder
                 setVideoSize(1920, 1080)
+                // See android.hardware.Camera.Parameters.setRotation for
+                // documentation.
+                // Note that mOrientation here is the device orientation, which is the opposite of
+                // what activity.getWindowManager().getDefaultDisplay().getRotation() would return,
+                // which is the orientation the graphics need to rotate in order to render correctly.
+                val mOrientation = windowManager.defaultDisplay
+                    .rotation
+                var rotation = 0
+                val info = android.hardware.Camera.CameraInfo()
+                val mCameraId = 0
+                android.hardware.Camera.getCameraInfo(mCameraId, info)
+                if (mOrientation !== OrientationEventListener.ORIENTATION_UNKNOWN) {
+                    if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
+                        rotation = (info.orientation - mOrientation + 360) % 360
+                    } else {  // back-facing camera
+                        rotation = (info.orientation + mOrientation) % 360
+                    }
+                } else {
+                    //Get the right original orientation
+                    rotation = info.orientation
+                }
+                //        mMediaRecorder.setOrientationHint(rotation);
+
+                if (mCameraId === CameraInfo.CAMERA_FACING_FRONT) {
+                    if (rotation == 270 || rotation == 90 || rotation == 180) {
+                        setOrientationHint(180)
+                    } else {
+                        setOrientationHint(0)
+                    }
+                } else {
+                    if (rotation == 180) {
+                        setOrientationHint(180)
+                    } else {
+                        setOrientationHint(0)
+                    }
+                }
+
+
                 return try {
                     prepare()
                     true

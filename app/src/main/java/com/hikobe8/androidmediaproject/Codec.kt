@@ -1,10 +1,9 @@
-package com.hikobe8.androidmediaproject.audio
+package com.hikobe8.androidmediaproject
 
 import android.media.*
 import android.os.Build
 import android.support.annotation.RequiresApi
 import android.util.Log
-import com.hikobe8.androidmediaproject.FileUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -48,10 +47,15 @@ class AudioEncoder {
             mEncoder = MediaCodec.createEncoderByType(MIME_TYPE)
             val mediaFormat = MediaFormat.createAudioFormat(
                 MIME_TYPE,
-                KEY_SAMPLE_RATE, KEY_CHANNEL_COUNT
+                KEY_SAMPLE_RATE,
+                KEY_CHANNEL_COUNT
             )
-            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, KEY_BIT_RATE)
-            mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, KEY_AAC_PROFILE)
+            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE,
+                KEY_BIT_RATE
+            )
+            mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
+                KEY_AAC_PROFILE
+            )
             mEncoder?.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
             mEncoder?.start()
             mFile = File(FileUtils.getAudioRecordDir(), "${System.currentTimeMillis()}.aac")
