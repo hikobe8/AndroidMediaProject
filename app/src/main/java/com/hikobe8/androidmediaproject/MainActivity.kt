@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import com.hikobe8.androidmediaproject.audio.AudioRecordPlayActivity
+import com.hikobe8.androidmediaproject.audio.AudioRecordPlayWithCodecActivity
 import com.hikobe8.androidmediaproject.camera.camera2.Camera2BasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraBasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraRecordActivity
@@ -39,6 +40,10 @@ class MainActivity : AppCompatActivity() {
 
     fun go2Camera2(view: View) {
         Camera2BasicActivity.launch(this)
+    }
+
+    fun go2AudioRecordPlayAAC(view: View) {
+        AudioRecordPlayWithCodecActivity.launch(this)
     }
 
 }

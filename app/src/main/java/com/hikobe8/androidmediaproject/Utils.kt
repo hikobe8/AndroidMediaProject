@@ -7,15 +7,8 @@ import android.hardware.Camera
 import android.os.Build
 import android.os.Environment
 import android.support.annotation.RequiresApi
-import java.io.File
-import android.hardware.Camera.CameraInfo
-import android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT
 import android.view.Surface
-import android.view.Surface.ROTATION_270
-import android.view.Surface.ROTATION_180
-import android.view.Surface.ROTATION_90
-import android.view.Surface.ROTATION_0
-
+import java.io.File
 
 
 /***
@@ -44,7 +37,7 @@ class PermissionUtils {
 
 class FileUtils {
     companion object {
-        fun getStorageDir(): String {
+        private fun getStorageDir(): String {
             val dir = File(Environment.getExternalStorageDirectory().absolutePath, BuildConfig.APPLICATION_ID)
             if (!dir.exists())
                 dir.mkdirs()

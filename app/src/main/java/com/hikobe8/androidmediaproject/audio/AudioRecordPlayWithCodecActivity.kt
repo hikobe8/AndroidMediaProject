@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
+import android.support.annotation.RequiresApi
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -25,7 +26,13 @@ import kotlinx.android.synthetic.main.activity_audio_record_play.*
 import java.io.File
 import java.lang.ref.WeakReference
 
-class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapter.OnItemClickListener,
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+/**
+ * Author : hikobe8@github.com
+ * Time : 2018/12/21 11:22 AM
+ * Description : 使用MediaCodec编码PCM音频数据为aac格式文件,并且解码aac为PCM并通过AudioTrack播放
+ */
+class AudioRecordPlayWithCodecActivity : BaseActivity(), View.OnClickListener, AudioAdapter.OnItemClickListener,
     AudioRecordCapturer.OnRecordCompleteListener, AudioTrackPlayer.OnPlayCompletelyListener {
 
     override fun onPlayCompletely() {
@@ -36,7 +43,7 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
 
     override fun onRecordCompleted(audioRecordBean: AudioRecordBean?) {
         if (audioRecordBean != null) {
-            runOnUiThread{
+            runOnUiThread {
                 rv_audios.scrollToPosition(0)
                 mRecordAdapter.addData(audioRecordBean)
             }
@@ -54,15 +61,15 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
 
     companion object {
         fun launch(context: Context) {
-            context.startActivity(Intent(context, AudioRecordPlayActivity::class.java))
+            context.startActivity(Intent(context, AudioRecordPlayWithCodecActivity::class.java))
         }
     }
 
     val mCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
-    class TimerHandler(activity: AudioRecordPlayActivity) : Handler() {
+    class TimerHandler(activity: AudioRecordPlayWithCodecActivity) : Handler() {
 
-        private var mWeakReference: WeakReference<AudioRecordPlayActivity> = WeakReference(activity)
+        private var mWeakReference: WeakReference<AudioRecordPlayWithCodecActivity> = WeakReference(activity)
 
         private var mSeconds = 0
 
@@ -92,7 +99,7 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
     }
 
     private val mAudioRecordCapturer: AudioRecordCapturer by lazy {
-        val audioRecordCapturer = AudioRecordCapturer()
+        val audioRecordCapturer = AudioRecordCapturer(AudioEncoder())
         audioRecordCapturer.mOnRecordCompleteListener = this
         audioRecordCapturer
     }

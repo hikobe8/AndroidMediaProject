@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import java.io.File
 import java.lang.IllegalArgumentException
 import java.lang.StringBuilder
 
@@ -41,3 +42,6 @@ fun Long.formatTime(): String {
     }
     return timeBuilder.toString()
 }
+
+fun String.fileName():String = this.substring(this.lastIndexOf(File.separator) + 1)
+
