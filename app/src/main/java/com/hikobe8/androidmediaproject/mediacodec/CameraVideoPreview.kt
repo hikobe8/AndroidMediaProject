@@ -17,7 +17,7 @@ import java.lang.Exception
 class CameraVideoPreview(context: Context, private val mCamera: Camera) : SurfaceView(context), SurfaceHolder.Callback {
 
     companion object {
-        const val TAG = "CameraPreview"
+        const val TAG = "CameraVideoPreview"
     }
 
     private val mHolder = holder.apply {
@@ -39,6 +39,7 @@ class CameraVideoPreview(context: Context, private val mCamera: Camera) : Surfac
                 mOnPreviewStateListener?.onStartPreview(0,0)
                 this@CameraVideoPreview.startFaceDetection()
             } catch (e: IOException) {
+                e.printStackTrace()
                 Log.d(TAG, "Error setting camera preview: ${e.message}")
             }
         }
@@ -58,6 +59,10 @@ class CameraVideoPreview(context: Context, private val mCamera: Camera) : Surfac
         // reformatting changes here
         val parameters = mCamera.parameters
         val optimalSize = getOptimalSize(mCamera.parameters.supportedPreviewSizes, width, height)
+        //fixme
+        optimalSize?.width = 1280
+        optimalSize?.height = 720
+
         parameters?.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO
         parameters?.previewFormat = ImageFormat.NV21
         optimalSize?.let { parameters.setPreviewSize(it.width, it.height) }
@@ -70,6 +75,7 @@ class CameraVideoPreview(context: Context, private val mCamera: Camera) : Surfac
                 mOnPreviewStateListener?.onStartPreview(optimalSize?.width ?: 0, optimalSize?.height ?: 0)
                 this@CameraVideoPreview.startFaceDetection()
             } catch (e: Exception) {
+                e.printStackTrace()
                 Log.e(TAG, "Error starting camera preview: ${e.message}")
             }
         }
@@ -113,7 +119,6 @@ class CameraVideoPreview(context: Context, private val mCamera: Camera) : Surfac
                 }
             }
         }
-
         return optimalSize
     }
 
