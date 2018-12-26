@@ -45,14 +45,20 @@
         </activity>
         <activity
                 android:name=".camera.camera2.Camera2BasicActivity"
-                android:label="@string/title_activity_camera2_basic"
                 android:configChanges="orientation|keyboardHidden"
+                android:label="@string/title_activity_camera2_basic"
                 android:screenOrientation="portrait"
                 android:theme="@style/AppTheme.FullScreen">
         </activity>
         <activity android:name=".mediacodec.AudioRecordPlayWithCodecActivity"/>
-        <activity android:name=".mediacodec.CameraRecordWithCodecActivity"
-                  android:theme="@style/AppTheme.FullScreen"/>
+        <activity
+                android:name=".mediacodec.CameraRecordWithCodecActivity"
+                android:theme="@style/AppTheme.FullScreen"/>
+        <activity
+                android:name=".opengl.OpenGLMainActivity"
+                android:theme="@style/ActionBarTheme"/>
+        <activity android:name=".opengl.basic.OpenGLBasicDrawActivity"
+                  android:theme="@style/ActionBarTheme"/>
     </application>
 
 </manifest>

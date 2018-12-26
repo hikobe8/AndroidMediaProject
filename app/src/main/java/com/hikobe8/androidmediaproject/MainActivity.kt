@@ -11,6 +11,7 @@ import com.hikobe8.androidmediaproject.camera.CameraRecordActivity
 import com.hikobe8.androidmediaproject.draw.DrawImageActivity
 import com.hikobe8.androidmediaproject.media.ExtractMuteVideoActivity
 import com.hikobe8.androidmediaproject.mediacodec.CameraRecordWithCodecActivity
+import com.hikobe8.androidmediaproject.opengl.OpenGLMainActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,6 +50,10 @@ class MainActivity : AppCompatActivity() {
 
     fun go2RecordH264(view:View) {
         CameraRecordWithCodecActivity.launch(this)
+    }
+
+    fun go2OpenGL(view:View) {
+        OpenGLMainActivity.launch(this)
     }
 
 }

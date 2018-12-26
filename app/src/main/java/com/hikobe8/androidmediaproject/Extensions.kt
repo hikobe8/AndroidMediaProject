@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import java.io.File
 import java.lang.IllegalArgumentException
 import java.lang.StringBuilder
@@ -44,4 +45,8 @@ fun Long.formatTime(): String {
 }
 
 fun String.fileName():String = this.substring(this.lastIndexOf(File.separator) + 1)
+
+fun Any.show(context: Context, duration:Int = Toast.LENGTH_SHORT){
+    Toast.makeText(context.applicationContext, toString(), duration).show()
+}
 
