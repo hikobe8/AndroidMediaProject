@@ -26,6 +26,7 @@ class BasicGeometricChoiceActivity : AppCompatActivity() {
         val type = when(view.id) {
             R.id.btn_triangle -> BasicRendererFactory.TYPE_TRIANGLE
             R.id.btn_rect -> BasicRendererFactory.TYPE_RECT
+            R.id.btn_isosceles -> BasicRendererFactory.TYPE_ISOSCELES_TRIANGLE
             else -> BasicRendererFactory.TYPE_TRIANGLE
         }
         setResult(Activity.RESULT_OK, Intent().apply {

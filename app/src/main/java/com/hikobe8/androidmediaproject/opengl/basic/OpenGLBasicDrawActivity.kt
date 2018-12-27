@@ -25,9 +25,13 @@ class OpenGLBasicDrawActivity : AppCompatActivity() {
         }
     }
 
+    private var mType: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_open_glbasic_draw)
+        mType = savedInstanceState?.getInt("type")?:0
+        gl_content.setShape(BasicRendererFactory.createRenderer(this, mType))
         btn_switch.setOnClickListener{
             BasicGeometricChoiceActivity.launch(this, REQ_CODE)
         }
@@ -43,10 +47,17 @@ class OpenGLBasicDrawActivity : AppCompatActivity() {
         gl_content.onPause()
     }
 
+    override fun onSaveInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        savedInstanceState?.putInt("type", mType)
+    }
+
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQ_CODE && resultCode == Activity.RESULT_OK && data?.hasExtra("type") == true) {
-            gl_content.setShape(BasicRendererFactory.createRenderer(this, data.getIntExtra("type", -1)))
+            mType = data.getIntExtra("type", -1)
+            gl_content.setShape(BasicRendererFactory.createRenderer(this, mType))
         }
     }
 
@@ -70,6 +81,8 @@ class BasicRendererFactory {
                 TYPE_TRIANGLE -> TriangleShape(context)
 
                 TYPE_RECT -> RectShape(context)
+
+                TYPE_ISOSCELES_TRIANGLE -> IsoscelesTriangleShape(context)
 
                 else -> TriangleShape(context)
             }

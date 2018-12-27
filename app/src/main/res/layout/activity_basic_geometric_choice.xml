@@ -22,4 +22,11 @@
             android:text="矩形"
             android:onClick="onClickedShape"/>
 
+    <Button
+            android:id="@+id/btn_isosceles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="等腰三角形"
+            android:onClick="onClickedShape"/>
+
 </LinearLayout>
