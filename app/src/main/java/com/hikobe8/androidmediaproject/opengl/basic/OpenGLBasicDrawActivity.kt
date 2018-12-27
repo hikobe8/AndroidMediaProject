@@ -1,13 +1,10 @@
 package com.hikobe8.androidmediaproject.opengl.basic
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
-import android.view.ViewGroup
 import com.hikobe8.androidmediaproject.R
 import kotlinx.android.synthetic.main.activity_open_glbasic_draw.*
 
@@ -19,60 +16,64 @@ import kotlinx.android.synthetic.main.activity_open_glbasic_draw.*
 class OpenGLBasicDrawActivity : AppCompatActivity() {
 
     companion object {
+
+        const val REQ_CODE = 0x1
+
         fun launch(context: Context) {
-            context.startActivity(Intent(context, OpenGLBasicDrawActivity::class.java))
+            val intent = Intent(context, OpenGLBasicDrawActivity::class.java)
+            context.startActivity(intent)
         }
     }
-
-    private lateinit var mGLSurfaceView: GLSurfaceView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_open_glbasic_draw)
-        mGLSurfaceView = GLSurfaceView(this)
-        mGLSurfaceView.setEGLContextClientVersion(2)
-        mGLSurfaceView.setRenderer(TriangleRenderer(this))
-        mGLSurfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
-        content.addView(mGLSurfaceView)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_basic_opengl_draw, menu)
-        return true
-    }
-
-    val params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
-            R.id.menu_triangle -> {
-                content.removeAllViews()
-                mGLSurfaceView = GLSurfaceView(this)
-                mGLSurfaceView.setEGLContextClientVersion(2)
-                mGLSurfaceView.setRenderer(TriangleRenderer(this))
-                mGLSurfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
-                content.addView(mGLSurfaceView)
-            }
-            R.id.menu_rect -> {
-                content.removeAllViews()
-                mGLSurfaceView = GLSurfaceView(this)
-                mGLSurfaceView.setEGLContextClientVersion(2)
-                mGLSurfaceView.setRenderer(RectRenderer(this))
-                mGLSurfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
-                content.addView(mGLSurfaceView)
-            }
+        btn_switch.setOnClickListener{
+            BasicGeometricChoiceActivity.launch(this, REQ_CODE)
         }
-        return true
     }
 
     override fun onResume() {
         super.onResume()
-        mGLSurfaceView.onResume()
+        gl_content.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        mGLSurfaceView.onPause()
+        gl_content.onPause()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_CODE && resultCode == Activity.RESULT_OK && data?.hasExtra("type") == true) {
+            gl_content.setShape(BasicRendererFactory.createRenderer(this, data.getIntExtra("type", -1)))
+        }
+    }
+
+}
+
+/***
+ *  Author : yurui@palmax.cn
+ *  Create at 2018/12/27 10:18
+ *  description : 基本几何图形的工厂类 - 创建基本几何图形的renderer
+ */
+class BasicRendererFactory {
+
+    companion object {
+
+        const val TYPE_TRIANGLE = 0
+        const val TYPE_ISOSCELES_TRIANGLE = 1
+        const val TYPE_RECT = 2
+
+        fun createRenderer(context: Context, type: Int):Shape {
+            return when(type) {
+                TYPE_TRIANGLE -> TriangleShape(context)
+
+                TYPE_RECT -> RectShape(context)
+
+                else -> TriangleShape(context)
+            }
+        }
     }
 
 }

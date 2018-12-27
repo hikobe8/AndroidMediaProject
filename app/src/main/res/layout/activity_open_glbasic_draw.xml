@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
-        android:id="@+id/content"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".opengl.basic.OpenGLBasicDrawActivity">
+
+    <com.hikobe8.androidmediaproject.opengl.basic.BasicShapeGLSurfaceView
+            android:id="@+id/gl_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    <Button
+            android:id="@+id/btn_switch"
+            android:text="切换图形"
+            android:layout_gravity="top|right"
+            android:layout_margin="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
 </FrameLayout>
