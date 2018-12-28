@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.opengl.basic.OpenGLBasicDrawActivity
+import com.hikobe8.androidmediaproject.opengl.texture.BasicTextureActivity
 
 /***
  *  Author : ryu18356@gmail.com
@@ -26,8 +27,12 @@ class OpenGLMainActivity: AppCompatActivity(){
         setContentView(R.layout.activity_opengl_main)
     }
 
-    fun go2BasicDraw(v:View) {
-        OpenGLBasicDrawActivity.launch(this)
+    fun onCLicked(v:View) {
+        when(v.id) {
+            R.id.btn_basic -> OpenGLBasicDrawActivity.launch(this)
+            R.id.btn_basic_texture -> BasicTextureActivity.launch(this)
+        }
+
     }
 
 }
