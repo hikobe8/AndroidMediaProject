@@ -63,8 +63,11 @@
         <activity
                 android:name=".opengl.basic.BasicGeometricChoiceActivity"
                 android:theme="@style/ActionBarTheme"/>
-        <activity android:name=".opengl.texture.BasicTextureActivity"
-                  android:theme="@style/ActionBarTheme"/>
+        <activity
+                android:name=".opengl.texture.BasicTextureActivity"
+                android:theme="@style/ActionBarTheme"/>
+        <activity android:name=".opengl.camera.CameraGLActivity">
+        </activity>
     </application>
 
 </manifest>

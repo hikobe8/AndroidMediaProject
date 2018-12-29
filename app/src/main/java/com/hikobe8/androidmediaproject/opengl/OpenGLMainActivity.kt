@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.opengl.basic.OpenGLBasicDrawActivity
+import com.hikobe8.androidmediaproject.opengl.camera.CameraGLActivity
 import com.hikobe8.androidmediaproject.opengl.texture.BasicTextureActivity
 
 /***
@@ -31,6 +32,7 @@ class OpenGLMainActivity: AppCompatActivity(){
         when(v.id) {
             R.id.btn_basic -> OpenGLBasicDrawActivity.launch(this)
             R.id.btn_basic_texture -> BasicTextureActivity.launch(this)
+            R.id.btn_camera1 -> CameraGLActivity.launch(this)
         }
 
     }

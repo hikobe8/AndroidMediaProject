@@ -31,10 +31,10 @@ class BasicTextureActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_basic_texture)
         gl_content1.setEGLContextClientVersion(2)
-        gl_content1.setRenderer(BasicTextureRenderer(this))
+        gl_content1.setRenderer(BasicTextureRenderer(this, R.drawable.fengj_png))
         gl_content1.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         gl_content2.setEGLContextClientVersion(2)
-        gl_content2.setRenderer(BasicTextureRenderer(this, R.drawable.landscape))
+        gl_content2.setRenderer(BasicTextureRenderer(this, R.drawable.fengj))
         gl_content2.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
     }
 }
@@ -80,7 +80,7 @@ class BasicTextureRenderer(context: Context, resId:Int = R.drawable.portrait) : 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES20.glClearColor(0.8f, 0.8f, 0.8f, 1f)
         val vertexShader = ShaderUtil.loadShader(mContext, "texture/t_vertex.glsl", GLES20.GL_VERTEX_SHADER)
-        val fragmentShader = ShaderUtil.loadShader(mContext, "texture/t_fragment.glsl", GLES20.GL_FRAGMENT_SHADER)
+        val fragmentShader = ShaderUtil.loadShader(mContext, "camera/fragment_camera.glsl", GLES20.GL_FRAGMENT_SHADER)
         mProgram = GLES20.glCreateProgram()
         GLES20.glAttachShader(mProgram, vertexShader)
         GLES20.glAttachShader(mProgram, fragmentShader)
