@@ -163,6 +163,7 @@ class BasicTextureRenderer(context: Context, resId:Int = R.drawable.portrait) : 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         GLES20.glDisableVertexAttribArray(mPositionHandle)
         GLES20.glDisableVertexAttribArray(mTextureCoordinateHandle)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
     }
 
     private fun createTexture(): Int {
