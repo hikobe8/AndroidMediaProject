@@ -22,11 +22,11 @@ import javax.microedition.khronos.opengles.GL10
  */
 class CameraView(context: Context?, attrs: AttributeSet?) : GLSurfaceView(context, attrs), GLSurfaceView.Renderer {
 
-    private var mCameraId = 0
+    private var mCameraId = 1
 
     constructor(context: Context?) : this(context, null)
 
-    private var mCamera:Camera ?= null
+    private var mCamera: Camera? = null
 
     private var mCameraRenderer = CameraRenderer(context)
 
@@ -41,7 +41,8 @@ class CameraView(context: Context?, attrs: AttributeSet?) : GLSurfaceView(contex
         mCamera = Camera.open(mCameraId)
         //初始化相机
         val param = mCamera?.parameters
-        param?.setPreviewSize(1280,720)
+        param?.setPreviewSize(1280, 720)
+        param?.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
         mCamera?.parameters = param
         mCamera?.setPreviewTexture(mCameraRenderer.mSurfaceTexture)
         mCameraRenderer.mSurfaceTexture?.setOnFrameAvailableListener {
@@ -140,13 +141,16 @@ class CameraRenderer(context: Context?) : GLSurfaceView.Renderer {
         if (width > height) {
             //横屏
             val aspectRatio = width.toFloat() / height
-            Matrix.orthoM(mMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f)
+            Matrix.orthoM(mMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f)
         } else {
             //竖屏
             val aspectRatio = height.toFloat() / width
-            Matrix.orthoM(mMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f)
+            Matrix.orthoM(mMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f)
         }
-        Matrix.orthoM(mMatrix, 0, -1f, 1f, -1f, 1f, -1f, 1f)
+        Matrix.orthoM(mMatrix, 0, -1f, 1f, -1f,1f, -1f, 1f)
+//        Matrix.rotateM(mMatrix, 0, 270f, 0f, 0f, 1f)
+        Matrix.scaleM(mMatrix, 0, -1f, 1f, 1f) //绕x轴反转前置摄像头
+        Matrix.rotateM(mMatrix, 0, 90f, 0f, 0f, 1f) //旋转前置摄像头
     }
 
     override fun onDrawFrame(gl: GL10?) {
@@ -160,8 +164,10 @@ class CameraRenderer(context: Context?) : GLSurfaceView.Renderer {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId)
         GLES20.glUniform1i(mGlTextureSamplerHandle, 0)
         //创建纹理
-        GLES20.glVertexAttribPointer(mPositionHandle,
-            COUNT_PER_COORD, GLES20.GL_FLOAT, false, 0, mVertexBuffer)
+        GLES20.glVertexAttribPointer(
+            mPositionHandle,
+            COUNT_PER_COORD, GLES20.GL_FLOAT, false, 0, mVertexBuffer
+        )
         GLES20.glVertexAttribPointer(
             mTextureCoordinateHandle,
             COUNT_PER_COORD,
