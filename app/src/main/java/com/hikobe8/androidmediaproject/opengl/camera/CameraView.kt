@@ -2,7 +2,6 @@ package com.hikobe8.androidmediaproject.opengl.camera
 
 import android.content.Context
 import android.graphics.SurfaceTexture
-import android.hardware.Camera
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
@@ -22,29 +21,27 @@ import javax.microedition.khronos.opengles.GL10
  */
 class CameraView(context: Context?, attrs: AttributeSet?) : GLSurfaceView(context, attrs), GLSurfaceView.Renderer {
 
-    private var mCameraId = 1
-
     constructor(context: Context?) : this(context, null)
 
-    private var mCamera: Camera? = null
+    private var mCamera: ICamera? = null
 
     private var mCameraRenderer = CameraRenderer(context)
+
+    private var mCloseRunnable: Runnable? = null
 
     init {
         setEGLContextClientVersion(2)
         setRenderer(this)
         renderMode = RENDERMODE_WHEN_DIRTY
+        mCamera = ClassicCamera()
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+        mCloseRunnable?.run()
+        mCamera?.openCamera()
+        mCameraRenderer.mFacingFront = mCamera?.isFrontCamera()!!
         mCameraRenderer.onSurfaceCreated(gl, config)
-        mCamera = Camera.open(mCameraId)
-        //初始化相机
-        val param = mCamera?.parameters
-        param?.setPreviewSize(1280, 720)
-        param?.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
-        mCamera?.parameters = param
-        mCamera?.setPreviewTexture(mCameraRenderer.mSurfaceTexture)
+        mCamera?.setTexture(mCameraRenderer.mSurfaceTexture)
         mCameraRenderer.mSurfaceTexture?.setOnFrameAvailableListener {
             requestRender()
         }
@@ -52,12 +49,30 @@ class CameraView(context: Context?, attrs: AttributeSet?) : GLSurfaceView(contex
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
+        mCameraRenderer.mFacingFront = mCamera?.isFrontCamera()!!
         mCameraRenderer.onSurfaceChanged(gl, width, height)
+        mCamera?.stopPreview()
+        mCamera?.setPreviewSize(width, height)
+        mCamera?.startPreview()
     }
 
     override fun onDrawFrame(gl: GL10?) {
         mCameraRenderer.onDrawFrame(gl)
     }
+
+    fun switch() {
+        mCloseRunnable = Runnable {
+            mCamera?.switchCamera()
+        }
+        onPause()
+        onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mCamera?.closeCamera()
+    }
+
 }
 
 /***
@@ -105,6 +120,8 @@ class CameraRenderer(context: Context?) : GLSurfaceView.Renderer {
 
     private val mMatrix = FloatArray(16)
 
+    var mFacingFront = false
+
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
 
         GLES20.glClearColor(0f, 0f, 0f, 1f)
@@ -136,7 +153,14 @@ class CameraRenderer(context: Context?) : GLSurfaceView.Renderer {
         mSurfaceTexture = SurfaceTexture(mTextureId)
     }
 
+    var gl1: GL10? = null
+    private var width = 0
+    private var height = 0
+
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
+        this.gl1 = gl
+        this.width = width
+        this.height = height
         GLES20.glViewport(0, 0, width, height)
         if (width > height) {
             //横屏
@@ -147,10 +171,13 @@ class CameraRenderer(context: Context?) : GLSurfaceView.Renderer {
             val aspectRatio = height.toFloat() / width
             Matrix.orthoM(mMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f)
         }
-        Matrix.orthoM(mMatrix, 0, -1f, 1f, -1f,1f, -1f, 1f)
-//        Matrix.rotateM(mMatrix, 0, 270f, 0f, 0f, 1f)
-        Matrix.scaleM(mMatrix, 0, -1f, 1f, 1f) //绕x轴反转前置摄像头
-        Matrix.rotateM(mMatrix, 0, 90f, 0f, 0f, 1f) //旋转前置摄像头
+        Matrix.orthoM(mMatrix, 0, -1f, 1f, -1f, 1f, -1f, 1f)
+        if (mFacingFront) {
+            Matrix.scaleM(mMatrix, 0, -1f, 1f, 1f) //绕x轴反转前置摄像头
+            Matrix.rotateM(mMatrix, 0, 90f, 0f, 0f, 1f) //旋转前置摄像头
+        } else {
+            Matrix.rotateM(mMatrix, 0, 270f, 0f, 0f, 1f) //旋转后置摄像头
+        }
     }
 
     override fun onDrawFrame(gl: GL10?) {

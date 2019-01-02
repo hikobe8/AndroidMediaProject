@@ -1,15 +1,12 @@
 package com.hikobe8.androidmediaproject
 
 import android.content.Context
-import android.content.Intent
-import android.support.v7.app.AppCompatActivity
+import android.graphics.Point
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import java.io.File
-import java.lang.IllegalArgumentException
-import java.lang.StringBuilder
 
 /***
  *  Author : ryu18356@gmail.com
@@ -49,4 +46,8 @@ fun String.fileName():String = this.substring(this.lastIndexOf(File.separator) +
 fun Any.show(context: Context, duration:Int = Toast.LENGTH_SHORT){
     Toast.makeText(context.applicationContext, toString(), duration).show()
 }
+
+fun Point.exsit()=x*y>0
+
+
 
