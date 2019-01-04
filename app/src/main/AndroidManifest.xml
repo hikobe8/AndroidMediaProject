@@ -66,8 +66,11 @@
         <activity
                 android:name=".opengl.texture.BasicTextureActivity"
                 android:theme="@style/ActionBarTheme"/>
-        <activity android:name=".opengl.camera.CameraGLActivity"
-                  android:theme="@style/AppTheme.FullScreen"/>
+        <activity
+                android:name=".opengl.camera.CameraGLActivity"
+                android:theme="@style/AppTheme.FullScreen"/>
+        <activity android:name=".draw.PorterDuffDemoActivity">
+        </activity>
     </application>
 
 </manifest>

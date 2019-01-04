@@ -15,6 +15,13 @@
         android:layout_height="wrap_content"/>
 
     <Button
+            android:text="使用PorterDuffMode处理图片"
+            android:textAllCaps="false"
+            android:onClick="go2PorterDuff"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    <Button
             android:text="使用AudioRecord/AudioTrack录制播放PCM音频"
             android:textAllCaps="false"
             android:onClick="go2AudioRecordPlay"

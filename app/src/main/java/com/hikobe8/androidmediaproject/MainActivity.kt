@@ -9,6 +9,7 @@ import com.hikobe8.androidmediaproject.camera.camera2.Camera2BasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraBasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraRecordActivity
 import com.hikobe8.androidmediaproject.draw.DrawImageActivity
+import com.hikobe8.androidmediaproject.draw.PorterDuffDemoActivity
 import com.hikobe8.androidmediaproject.media.ExtractMuteVideoActivity
 import com.hikobe8.androidmediaproject.mediacodec.CameraRecordWithCodecActivity
 import com.hikobe8.androidmediaproject.opengl.OpenGLMainActivity
@@ -22,6 +23,10 @@ class MainActivity : AppCompatActivity() {
 
     fun go2DrawImageByView(view: View) {
         DrawImageActivity.launch(this)
+    }
+
+    fun go2PorterDuff(view: View) {
+        PorterDuffDemoActivity.launch(this)
     }
 
     fun go2AudioRecordPlay(view: View) {
@@ -48,11 +53,11 @@ class MainActivity : AppCompatActivity() {
         AudioRecordPlayWithCodecActivity.launch(this)
     }
 
-    fun go2RecordH264(view:View) {
+    fun go2RecordH264(view: View) {
         CameraRecordWithCodecActivity.launch(this)
     }
 
-    fun go2OpenGL(view:View) {
+    fun go2OpenGL(view: View) {
         OpenGLMainActivity.launch(this)
     }
 
