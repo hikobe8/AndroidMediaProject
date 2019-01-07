@@ -3,12 +3,15 @@ package com.hikobe8.androidmediaproject.draw
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
+import android.support.v7.app.AppCompatActivity
 import android.util.AttributeSet
 import android.view.View
 import com.hikobe8.androidmediaproject.R
 import kotlinx.android.synthetic.main.activity_porter_duff_demo.*
+import java.io.File
+import java.io.FileOutputStream
 
 class PorterDuffDemoActivity : AppCompatActivity() {
 
@@ -23,10 +26,12 @@ class PorterDuffDemoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_porter_duff_demo)
         btn_show.setOnClickListener {
             porter_view.extractImgInMirror()
-            val bmp = Bitmap.createBitmap(porter_view.width, porter_view.height, Bitmap.Config.ARGB_8888)
+            val bmp = Bitmap.createBitmap(porter_view.width, porter_view.height, Bitmap.Config.ARGB_4444)
             val canvas = Canvas(bmp)
             porter_view.draw(canvas)
             iv_processed.setImageBitmap(bmp)
+            val os = FileOutputStream(File(Environment.getExternalStorageDirectory(), "0test.png"))
+            bmp.compress(Bitmap.CompressFormat.PNG, 0, os)
         }
     }
 }
@@ -41,7 +46,9 @@ class PorterDuffView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int)
     private var mSrcBitmap: Bitmap? = null //源图
     private var mDstBitmap: Bitmap? = null //遮罩层
     private val mDrawRect = Rect()
-    private var mPaint:Paint? = null
+    private var mPaint:Paint? = Paint().apply {
+        isAntiAlias = true
+    }
 
     private val mXfermode = PorterDuffXfermode(PorterDuff.Mode.XOR)
 
@@ -55,19 +62,25 @@ class PorterDuffView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int)
         mDrawRect.set(0,0,w,h)
     }
 
+    fun setBitmaps(srcBmp:Bitmap, dstBmp:Bitmap){
+        mSrcBitmap = srcBmp
+        mDstBitmap = dstBmp
+    }
+
     fun extractImgInMirror(){
         visibility = INVISIBLE
-        mPaint = Paint().apply {
-            isAntiAlias = true
-        }
         invalidate()
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        canvas?.drawBitmap(mSrcBitmap!!, null, mDrawRect, mPaint)
+        mSrcBitmap?.let {
+            canvas?.drawBitmap(it, null, mDrawRect, mPaint)
+        }
         mPaint?.xfermode = mXfermode
-        canvas?.drawBitmap(mDstBitmap!!, null, mDrawRect, mPaint)
+        mDstBitmap?.let {
+            canvas?.drawBitmap(it, null, mDrawRect, mPaint)
+        }
         mPaint?.xfermode = null
     }
 
