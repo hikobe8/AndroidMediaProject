@@ -406,9 +406,10 @@ class Camera2BasicFragment : Fragment() {
                 //使用最大的尺寸保证图片清晰度最高，并且拍摄的图片宽高比要和预览一致
                 val filter = map.getOutputSizes(ImageFormat.JPEG)
                     .filter {
-                        Math.abs((it.width - it.height * rotatedPreviewWidth * 1f / rotatedPreviewHeight)) < 0.01f
+                        Math.abs((it.width - it.height * rotatedPreviewWidth * 1f / rotatedPreviewHeight)) < 0.1f
                     }
-                val largest = Collections.max(filter, CompareSizesByArea())
+                val largest = if (filter.isEmpty()) map.getOutputSizes(ImageFormat.JPEG)[0]
+                    else  Collections.max(filter, CompareSizesByArea())
                 mImageReader = ImageReader.newInstance(largest.width, largest.height, ImageFormat.JPEG, 2)
                 mImageReader?.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler)
 
@@ -533,10 +534,11 @@ class Camera2BasicFragment : Fragment() {
             captureBuilder?.addTarget(mImageReader?.surface!!)
 
             // Use the same AE and AF modes as the preview.
-            captureBuilder?.set(
-                CaptureRequest.CONTROL_AF_MODE,
-                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-            )
+            if (captureBuilder?.get(CaptureRequest.CONTROL_AF_MODE) == CaptureRequest.CONTROL_AF_MODE_AUTO)
+                captureBuilder.set(
+                    CaptureRequest.CONTROL_AF_MODE,
+                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                )
             //设置拍摄的图片的方向
             captureBuilder?.set(
                 CaptureRequest.JPEG_ORIENTATION,
