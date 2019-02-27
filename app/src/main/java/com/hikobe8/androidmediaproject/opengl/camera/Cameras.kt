@@ -73,8 +73,8 @@ class ClassicCamera : ICamera {
         mPreviewSize.y = height
         val params = mCamera?.parameters
         val bestPreviewSize = getBestSize(params?.supportedPreviewSizes!!, mPreviewSize.y, mAspectRatio)
-        mPreviewSize.x = bestPreviewSize.height
-        mPreviewSize.y = bestPreviewSize.width
+        mPreviewSize.x = bestPreviewSize.width
+        mPreviewSize.y = bestPreviewSize.height
         mCamera?.parameters = params
     }
 
@@ -95,7 +95,10 @@ class ClassicCamera : ICamera {
         mOutPutSize.x = bestOutputSize.height
         mOutPutSize.y = bestOutputSize.width
         params.setPictureSize(bestOutputSize.width, bestOutputSize.height)
-        params.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
+        val focusModes = params.supportedFocusModes
+        if (focusModes != null && focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+            params.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
+        }
         mCamera?.parameters = params
     }
 

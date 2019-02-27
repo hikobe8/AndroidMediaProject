@@ -31,7 +31,7 @@ class BasicTextureActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_basic_texture)
         gl_content1.setEGLContextClientVersion(2)
-        gl_content1.setRenderer(BasicTextureRenderer(this, R.drawable.fengj_png))
+        gl_content1.setRenderer(BasicTextureRenderer(this, R.drawable.portrait))
         gl_content1.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         gl_content2.setEGLContextClientVersion(2)
         gl_content2.setRenderer(BasicTextureRenderer(this, R.drawable.fengj))
