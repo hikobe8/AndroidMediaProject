@@ -9,6 +9,7 @@ import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.opengl.basic.OpenGLBasicDrawActivity
 import com.hikobe8.androidmediaproject.opengl.camera.CameraGLActivity
 import com.hikobe8.androidmediaproject.opengl.texture.BasicTextureActivity
+import com.hikobe8.androidmediaproject.opengl.texture.FboTextureActivity
 
 /***
  *  Author : ryu18356@gmail.com
@@ -33,6 +34,7 @@ class OpenGLMainActivity: AppCompatActivity(){
             R.id.btn_basic -> OpenGLBasicDrawActivity.launch(this)
             R.id.btn_basic_texture -> BasicTextureActivity.launch(this)
             R.id.btn_camera1 -> CameraGLActivity.launch(this)
+            R.id.btn_fbo -> FboTextureActivity.launch(this)
         }
 
     }
