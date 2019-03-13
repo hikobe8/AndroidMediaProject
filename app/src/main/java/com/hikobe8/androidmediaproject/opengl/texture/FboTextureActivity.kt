@@ -32,7 +32,7 @@ class FboTextureActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fbo_texture)
         gl_content.setEGLContextClientVersion(2)
-        gl_content.setRenderer(FboRenderer(this, R.drawable.fengj))
+        gl_content.setRenderer(FboRenderer(this, R.drawable.portrait))
         gl_content.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
     }
 }
@@ -50,10 +50,10 @@ class TextureRenderer(context: Context) {
         const val COUNT_PER_COORD = 2
 
         val TEXTURE_COORDS = floatArrayOf(
-            0f, 0f, //left top
             0f, 1f,  //left bottom
-            1f, 0f,  //right top
-            1f, 1f //right bottom
+            0f, 0f, //left top
+            1f, 1f, //right bottom
+            1f, 0f  //right top
         )
     }
 
@@ -76,7 +76,7 @@ class TextureRenderer(context: Context) {
     fun create(bitmap: Bitmap) {
         GLES20.glClearColor(0.8f, 0.8f, 0.8f, 1f)
         val vertexShader = ShaderUtil.loadShader(mContext, "texture/t_vertex.glsl", GLES20.GL_VERTEX_SHADER)
-        val fragmentShader = ShaderUtil.loadShader(mContext, "camera/fragment_camera.glsl", GLES20.GL_FRAGMENT_SHADER)
+        val fragmentShader = ShaderUtil.loadShader(mContext, "texture/t_fragment.glsl", GLES20.GL_FRAGMENT_SHADER)
         mProgram = GLES20.glCreateProgram()
         GLES20.glAttachShader(mProgram, vertexShader)
         GLES20.glAttachShader(mProgram, fragmentShader)
@@ -201,7 +201,7 @@ class FboRenderer(context: Context, resId: Int = R.drawable.portrait) : GLSurfac
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES20.glClearColor(0.8f, 0.8f, 0.8f, 1f)
         val vertexShader = ShaderUtil.loadShader(mContext, "texture/f_vertex.glsl", GLES20.GL_VERTEX_SHADER)
-        val fragmentShader = ShaderUtil.loadShader(mContext, "camera/fragment_camera.glsl", GLES20.GL_FRAGMENT_SHADER)
+        val fragmentShader = ShaderUtil.loadShader(mContext, "texture/t_fragment.glsl", GLES20.GL_FRAGMENT_SHADER)
         mProgram = GLES20.glCreateProgram()
         GLES20.glAttachShader(mProgram, vertexShader)
         GLES20.glAttachShader(mProgram, fragmentShader)
@@ -249,7 +249,7 @@ class FboRenderer(context: Context, resId: Int = R.drawable.portrait) : GLSurfac
         //设置环绕方向T，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
         GLES20.glTexImage2D(
-            GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, mBitmap.width, mBitmap.height, 0,
+            GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 1080, 1920, 0,
             GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null
         )
         GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,  GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mFboTextureId, 0)

@@ -80,7 +80,7 @@ class BasicTextureRenderer(context: Context, resId:Int = R.drawable.portrait) : 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES20.glClearColor(0.8f, 0.8f, 0.8f, 1f)
         val vertexShader = ShaderUtil.loadShader(mContext, "texture/t_vertex.glsl", GLES20.GL_VERTEX_SHADER)
-        val fragmentShader = ShaderUtil.loadShader(mContext, "camera/fragment_camera.glsl", GLES20.GL_FRAGMENT_SHADER)
+        val fragmentShader = ShaderUtil.loadShader(mContext, "texture/t_fragment.glsl", GLES20.GL_FRAGMENT_SHADER)
         mProgram = GLES20.glCreateProgram()
         GLES20.glAttachShader(mProgram, vertexShader)
         GLES20.glAttachShader(mProgram, fragmentShader)
