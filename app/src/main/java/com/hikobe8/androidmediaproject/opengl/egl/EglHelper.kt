@@ -95,4 +95,26 @@ class EglHelper {
 
     }
 
+    fun swapBuffers(): Boolean {
+        return mEgl?.eglSwapBuffers(mEglDisplay, mEglSurface) ?: throw java.lang.RuntimeException("egl is null")
+    }
+
+    fun getContext(): EGLContext? = mEglContext
+
+    fun destroy(){
+        mEgl?.eglMakeCurrent(
+            mEglDisplay, EGL10.EGL_NO_SURFACE,
+            EGL10.EGL_NO_SURFACE,
+            EGL10.EGL_NO_CONTEXT
+        )
+        mEgl?.eglDestroySurface(mEglDisplay, mEglSurface)
+        mEglSurface = null
+        if (mEgl?.eglDestroyContext(mEglDisplay, mEglContext) == true) {
+            Log.e("DefaultContextFactory", "display:$mEglDisplay context: $mEglContext")
+        }
+        mEglContext = null
+        mEgl?.eglTerminate(mEglDisplay)
+        mEglDisplay = null
+    }
+
 }

@@ -71,8 +71,11 @@
                 android:theme="@style/AppTheme.FullScreen"/>
         <activity android:name=".draw.PorterDuffDemoActivity">
         </activity>
-        <activity android:name=".opengl.texture.FboTextureActivity"
-                  android:theme="@style/AppTheme.FullScreen"/>
+        <activity
+                android:name=".opengl.texture.FboTextureActivity"
+                android:theme="@style/AppTheme.FullScreen"/>
+        <activity android:name=".opengl.egl.EglBasicActivity">
+        </activity>
     </application>
 
 </manifest>
