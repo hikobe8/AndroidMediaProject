@@ -11,11 +11,13 @@ import kotlinx.android.synthetic.main.activity_egl_basic.*
 
 class EglBasicActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
+    private var loop = false
+
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
         Thread(
             Runnable {
                 mEglHelper.start(holder!!.surface, null)
-                while (true) {
+                while (loop) {
                     GLES20.glViewport(0, 0, width, height)
                     GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
                     GLES20.glClearColor(1f, 1f, 0f, 1f)
@@ -28,10 +30,12 @@ class EglBasicActivity : AppCompatActivity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
+        loop = false
         mEglHelper.destroy()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
+        loop = true
     }
 
     companion object {
