@@ -9,7 +9,7 @@ import javax.microedition.khronos.egl.*
  *  Create at 2019-03-15 17:31
  *  description :
  */
-class EglHelper {
+class    EglHelper {
 
     private var mEgl: EGL10? = null
     private var mEglDisplay: EGLDisplay? = null

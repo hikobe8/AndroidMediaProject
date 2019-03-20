@@ -76,6 +76,8 @@
                 android:theme="@style/AppTheme.FullScreen"/>
         <activity android:name=".opengl.egl.EglBasicActivity">
         </activity>
+        <activity android:name=".opengl.egl.CustomizedGLSurfaceActivity">
+        </activity>
     </application>
 
 </manifest>
