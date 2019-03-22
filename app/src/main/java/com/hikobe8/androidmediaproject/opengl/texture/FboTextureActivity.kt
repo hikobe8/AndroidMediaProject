@@ -32,7 +32,7 @@ class FboTextureActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fbo_texture)
         gl_content.setEGLContextClientVersion(2)
-        gl_content.setRenderer(FboRenderer(this, R.drawable.landscape))
+        gl_content.setRenderer(FboRenderer(this, R.drawable.batman))
         gl_content.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
     }
 }
@@ -264,7 +264,7 @@ class FboRenderer(context: Context, resId: Int = R.drawable.portrait) : GLSurfac
             val aspectRatio = height.toFloat() / width
             val imgWidth = mBitmap.width
             val imgHeight = mBitmap.height
-            if (imgWidth > imgHeight) {
+            if (imgWidth >= imgHeight) {
                 //宽图
                 val imgAspectRatio = imgWidth.toFloat() / imgHeight
                 Matrix.orthoM(mMatrix, 0, -1f, 1f, -imgAspectRatio * aspectRatio, imgAspectRatio * aspectRatio, -1f, 1f)

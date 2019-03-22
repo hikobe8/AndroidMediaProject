@@ -41,7 +41,7 @@ abstract class RayEGLSurfaceView(context: Context?, attrs: AttributeSet?) : Surf
     private var mEglContext: EGLContext? = null
 
     init {
-        holder.addCallback(this)
+        holder.addCallback(this@RayEGLSurfaceView)
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {

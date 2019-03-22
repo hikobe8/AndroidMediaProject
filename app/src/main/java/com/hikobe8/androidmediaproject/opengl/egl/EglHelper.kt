@@ -9,7 +9,11 @@ import javax.microedition.khronos.egl.*
  *  Create at 2019-03-15 17:31
  *  description :
  */
-class    EglHelper {
+class EglHelper {
+
+    companion object {
+        private const val EGL_CONTEXT_CLIENT_VERSION = 0x3098
+    }
 
     private var mEgl: EGL10? = null
     private var mEglDisplay: EGLDisplay? = null
@@ -71,15 +75,17 @@ class    EglHelper {
             throw IllegalArgumentException("eglChooseConfig#2 failed")
         }
 
+        val attrList = intArrayOf(EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE)
+
         mEglContext = if (eglContext == null) {
             mEgl!!.eglCreateContext(
                 mEglDisplay, configs[0], EGL10.EGL_NO_CONTEXT,
-                null
+                attrList
             )
         } else {
             mEgl!!.eglCreateContext(
                 mEglDisplay, configs[0], eglContext,
-                null
+                attrList
             )
         }
         //create surface
