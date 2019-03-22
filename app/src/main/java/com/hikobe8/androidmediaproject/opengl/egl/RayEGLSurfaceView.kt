@@ -58,12 +58,18 @@ abstract class RayEGLSurfaceView(context: Context?, attrs: AttributeSet?) : Surf
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
+        mSurface = null
         mGLThread?.onDestroy()
     }
 
     private var mRenderer: RayRenderer? = null
     private var mRendererMode =
         RENDERMODE_CONTINUOUSLY
+
+    fun setSurfaceAndEGLContext(surface: Surface?, eglContext: EGLContext?) {
+        mSurface = surface
+        mEglContext = eglContext
+    }
 
     fun setRenderer(renderer: RayRenderer) {
         if (mRenderer != null) {
@@ -84,11 +90,7 @@ abstract class RayEGLSurfaceView(context: Context?, attrs: AttributeSet?) : Surf
         mGLThread?.requestRender()
     }
 
-    interface RayRenderer {
-        fun onSurfaceCreated()
-        fun onSurfaceSizeChanged(width: Int, height: Int)
-        fun onDraw()
-    }
+    fun getEGLContext() = mGLThread?.getEGLContext()
 
     class GLThread(private val mSurfaceViewWeakRef: WeakReference<RayEGLSurfaceView>) : Thread() {
 
@@ -104,13 +106,13 @@ abstract class RayEGLSurfaceView(context: Context?, attrs: AttributeSet?) : Surf
         override fun run() {
 
             mIsStart = false
-
             mEglHelper = EglHelper()
-            if (mSurfaceViewWeakRef.get()!!.mSurface != null) {
+            mSurfaceViewWeakRef.get()!!.mSurface?.let {
+                Log.d(TAG, "Thread name = $name : EGLHelper created")
                 mEglHelper!!.start(mSurfaceViewWeakRef.get()!!.mSurface!!, mSurfaceViewWeakRef.get()!!.mEglContext)
             }
-            while (true) {
 
+            while (true) {
 
                 if (mExit) {
                     release()
@@ -119,7 +121,7 @@ abstract class RayEGLSurfaceView(context: Context?, attrs: AttributeSet?) : Surf
 
                 if (mIsStart) {
                     when {
-                        mSurfaceViewWeakRef.get()!!.mRendererMode == RENDERMODE_WHEN_DIRTY -> synchronized(mLock){
+                        mSurfaceViewWeakRef.get()!!.mRendererMode == RENDERMODE_WHEN_DIRTY -> synchronized(mLock) {
                             mLock.wait()
                         }
                         mSurfaceViewWeakRef.get()!!.mRendererMode == RENDERMODE_CONTINUOUSLY -> Thread.sleep(1000 / 60)
@@ -167,6 +169,8 @@ abstract class RayEGLSurfaceView(context: Context?, attrs: AttributeSet?) : Surf
             }
             mEglHelper?.swapBuffers()
         }
+
+        fun getEGLContext() = mEglHelper?.getContext()
 
         fun onDestroy() {
             mExit = true

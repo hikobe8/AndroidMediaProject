@@ -12,9 +12,9 @@ class RayGLSurfaceView(context: Context?, attrs: AttributeSet?) : RayEGLSurfaceV
     }
 }
 
-class MyRenderer(context: Context) : RayEGLSurfaceView.RayRenderer {
+class MyRenderer(context: Context) : RayRenderer {
 
-    private var mRenderer = BasicTextureRenderer(context, R.drawable.batman)
+    private var mRenderer = BasicTextureRenderer(context, R.drawable.landscape)
 
     override fun onSurfaceCreated() {
         mRenderer.onSurfaceCreated(null, null)

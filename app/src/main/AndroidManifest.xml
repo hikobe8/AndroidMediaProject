@@ -78,6 +78,8 @@
         </activity>
         <activity android:name=".opengl.egl.CustomizedGLSurfaceActivity">
         </activity>
+        <activity android:name=".opengl.multi_surface.SingleTextureMultiSurfaceActivity">
+        </activity>
     </application>
 
 </manifest>
