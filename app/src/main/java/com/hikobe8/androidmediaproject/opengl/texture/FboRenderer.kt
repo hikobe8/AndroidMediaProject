@@ -21,7 +21,7 @@ import javax.microedition.khronos.opengles.GL10
  *  Create at 2019-03-22 16:26
  *  description :
  */
-class FboRenderer(context: Context, resId: Int = R.drawable.fengj) : GLSurfaceView.Renderer {
+class FboRenderer(context: Context, resId: Int = R.drawable.landscape) : GLSurfaceView.Renderer {
 
     companion object {
         val COORDS = floatArrayOf(
@@ -86,13 +86,13 @@ class FboRenderer(context: Context, resId: Int = R.drawable.fengj) : GLSurfaceVi
             .put(TEXTURE_COORDS)
         mTextureVertexBuffer.position(0)
         mImageTextureId = createImageTexture()
-        createFBO()
-        mOnTextureAvailableListener?.onTextureAvailable(mFboTextureId)
         mTextureRenderer.onSurfaceCreated()
-        mTextureRenderer.setTextureId(mFboTextureId)
     }
 
-    private fun createFBO() {
+    /**
+     * 使用当前surface的尺寸创建FBO,因为使用图片的原始尺寸创建的话图片特别大的时候失真很严重
+     */
+    private fun createFBO(width: Int, height: Int) {
         //创建fbo
         val fbos = IntArray(1)
         GLES20.glGenBuffers(1, fbos, 0)
@@ -117,7 +117,7 @@ class FboRenderer(context: Context, resId: Int = R.drawable.fengj) : GLSurfaceVi
         //设置环绕方向T，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT)
         GLES20.glTexImage2D(
-            GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, mBitmap.width, mBitmap.height, 0,
+            GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
             GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null
         )
         GLES20.glFramebufferTexture2D(
@@ -139,12 +139,13 @@ class FboRenderer(context: Context, resId: Int = R.drawable.fengj) : GLSurfaceVi
     private var mFboId: Int = -1
     private var mFboTextureId: Int = -1
     private var mImageTextureId: Int = -1
-    private var mWidth = 0
-    private var mHeight = 0
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        mWidth = width
-        mHeight = height
+        GLES20.glViewport(0, 0, width, height)
+        mTextureRenderer.onSurfaceSizeChanged(width, height)
+        createFBO(width, height)
+        mOnTextureAvailableListener?.onTextureAvailable(mFboTextureId)
+        mTextureRenderer.setTextureId(mFboTextureId)
         if (width > height) {
             //横屏
             val aspectRatio = width.toFloat() / height
@@ -180,7 +181,6 @@ class FboRenderer(context: Context, resId: Int = R.drawable.fengj) : GLSurfaceVi
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        GLES20.glViewport(0, 0, mBitmap.width, mBitmap.height)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFboId)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glUseProgram(mProgram)
@@ -202,7 +202,6 @@ class FboRenderer(context: Context, resId: Int = R.drawable.fengj) : GLSurfaceVi
         GLES20.glDisableVertexAttribArray(mTextureCoordinateHandle)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
-        GLES20.glViewport(0, 0, mWidth, mHeight)
         mTextureRenderer.onDraw()
     }
 
