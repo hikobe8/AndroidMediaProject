@@ -80,6 +80,7 @@
         </activity>
         <activity android:name=".opengl.multi_surface.SingleTextureMultiSurfaceActivity">
         </activity>
+        <activity android:name=".opengl.multi_surface.SingleSurfaceMultiTextureActivity"/>
     </application>
 
 </manifest>
