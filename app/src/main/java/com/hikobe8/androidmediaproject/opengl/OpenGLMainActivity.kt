@@ -10,7 +10,7 @@ import com.hikobe8.androidmediaproject.opengl.basic.OpenGLBasicDrawActivity
 import com.hikobe8.androidmediaproject.opengl.camera.CameraGLActivity
 import com.hikobe8.androidmediaproject.opengl.egl.CustomizedGLSurfaceActivity
 import com.hikobe8.androidmediaproject.opengl.egl.EglBasicActivity
-import com.hikobe8.androidmediaproject.opengl.multi_surface.SingleSurfaceMultiTextureActivity
+import com.hikobe8.androidmediaproject.opengl.multi_texture.SingleSurfaceMultiTextureActivity
 import com.hikobe8.androidmediaproject.opengl.multi_surface.SingleTextureMultiSurfaceActivity
 import com.hikobe8.androidmediaproject.opengl.texture.BasicTextureActivity
 import com.hikobe8.androidmediaproject.opengl.texture.FboTextureActivity

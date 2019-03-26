@@ -1,4 +1,4 @@
-package com.hikobe8.androidmediaproject.opengl.multi_surface
+package com.hikobe8.androidmediaproject.opengl.multi_texture
 
 import android.content.Context
 import android.content.Intent
@@ -9,7 +9,7 @@ import android.widget.LinearLayout
 import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.opengl.egl.RayEGLSurfaceView
 import com.hikobe8.androidmediaproject.opengl.egl.RayRendererWrappter
-import com.hikobe8.androidmediaproject.opengl.texture.FboRenderer
+import com.hikobe8.androidmediaproject.opengl.multi_surface.MultiGLSurfaceView
 import com.hikobe8.androidmediaproject.opengl.texture.TextureRenderer
 import kotlinx.android.synthetic.main.activity_single_texture_multi_surface.*
 
@@ -18,7 +18,8 @@ import kotlinx.android.synthetic.main.activity_single_texture_multi_surface.*
  *  Create at 2019/3/22 17:09
  *  description : 多个纹理渲染到同一个Surface上面
  */
-class SingleSurfaceMultiTextureActivity : AppCompatActivity(), FboRendererMultiSurface.OnTextureAvailableListener {
+class SingleSurfaceMultiTextureActivity : AppCompatActivity(),
+    FboRendererMultiSurface.OnTextureAvailableListener {
 
     companion object {
         fun launch(context: Context) {
@@ -29,7 +30,10 @@ class SingleSurfaceMultiTextureActivity : AppCompatActivity(), FboRendererMultiS
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_single_texture_multi_surface)
-        surface_origin.setRenderer(RayRendererWrappter(FboRendererMultiSurface(this).apply {
+        surface_origin.setRenderer(RayRendererWrappter(
+            FboRendererMultiSurface(
+                this
+            ).apply {
             mOnTextureAvailableListener = this@SingleSurfaceMultiTextureActivity
         }))
         surface_origin.setRenderMode(RayEGLSurfaceView.RENDERMODE_WHEN_DIRTY)

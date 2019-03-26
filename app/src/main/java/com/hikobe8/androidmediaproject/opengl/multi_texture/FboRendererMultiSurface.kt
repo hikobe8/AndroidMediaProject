@@ -1,4 +1,4 @@
-package com.hikobe8.androidmediaproject.opengl.multi_surface
+package com.hikobe8.androidmediaproject.opengl.multi_texture
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -22,17 +22,14 @@ import javax.microedition.khronos.opengles.GL10
  *  Create at 2019-03-22 16:26
  *  description : 绘制多个纹理的fbo
  */
-class VboFboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj) : GLSurfaceView.Renderer {
+class FboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj) : GLSurfaceView.Renderer {
 
     companion object {
         val COORDS = floatArrayOf(
             -1f, 1f, //left top
             -1f, -1f, //left bottom
             1f, 1f, //right top
-            1f, -1f //right bottom
-        )
-
-        val SECOND_COORDS = floatArrayOf(
+            1f, -1f, //right bottom
             //second texture position
             -0.5f, 0.5f,
             -0.5f, -0.5f,
@@ -65,7 +62,6 @@ class VboFboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj
     private var mProgram = -1
     private lateinit var mBitmap: Bitmap
     private lateinit var mVertexBuffer: FloatBuffer
-    private lateinit var mSecondVertexBuffer: FloatBuffer
     private lateinit var mTextureVertexBuffer: FloatBuffer
     private var mTextureRenderer: TextureRenderer = TextureRenderer(context)
     private val mMatrix = FloatArray(16)
@@ -89,20 +85,31 @@ class VboFboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj
             .asFloatBuffer()
             .put(COORDS)
         mVertexBuffer.position(0)
-        mSecondVertexBuffer = ByteBuffer
-            .allocateDirect(SECOND_COORDS.size * 4)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .put(SECOND_COORDS)
-        mSecondVertexBuffer.position(0)
         mTextureVertexBuffer = ByteBuffer
             .allocateDirect(TEXTURE_COORDS.size * 4)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
             .put(TEXTURE_COORDS)
         mTextureVertexBuffer.position(0)
+        //create vbo
+        val vbos = IntArray(1)
+        GLES20.glGenBuffers(1, vbos, 0)
+        mVboId = vbos[0]
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboId)
+        GLES20.glBufferData(
+            GLES20.GL_ARRAY_BUFFER,
+            COORDS.size * 4 + TEXTURE_COORDS.size * 4,
+            null,
+            GLES20.GL_STATIC_DRAW
+        )
+        GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, COORDS.size * 4, mVertexBuffer)
+        GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, COORDS.size * 4, TEXTURE_COORDS.size * 4, mTextureVertexBuffer)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
+
+
         mImageTextureId = createImageTexture(mBitmap)
-        mSecondImageTextureId = createImageTexture(BitmapFactory.decodeResource(mContext.resources, R.drawable.landscape))
+        mSecondImageTextureId =
+                createImageTexture(BitmapFactory.decodeResource(mContext.resources, R.drawable.landscape))
         mTextureRenderer.onSurfaceCreated()
     }
 
@@ -153,6 +160,7 @@ class VboFboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
     }
 
+    private var mVboId: Int = -1
     private var mFboId: Int = -1
     private var mFboTextureId: Int = -1
     private var mImageTextureId: Int = -1
@@ -203,37 +211,47 @@ class VboFboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glUseProgram(mProgram)
         GLES20.glUniformMatrix4fv(mMatrixHandle, 1, false, mMatrix, 0)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboId)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mImageTextureId)
         GLES20.glEnableVertexAttribArray(mPositionHandle)
         GLES20.glEnableVertexAttribArray(mTextureCoordinateHandle)
-        GLES20.glVertexAttribPointer(mPositionHandle, COUNT_PER_COORD, GLES20.GL_FLOAT, false, 8, mVertexBuffer)
+        GLES20.glVertexAttribPointer(
+            mPositionHandle,
+            COUNT_PER_COORD, GLES20.GL_FLOAT, false, 8, 0
+        )
         GLES20.glVertexAttribPointer(
             mTextureCoordinateHandle,
             COUNT_PER_COORD,
             GLES20.GL_FLOAT,
             false,
             8,
-            mTextureVertexBuffer
+            COORDS.size * 4
         )
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+        GLES20.glDisableVertexAttribArray(mPositionHandle)
+        GLES20.glDisableVertexAttribArray(mTextureCoordinateHandle)
 
         //draw second texture
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mSecondImageTextureId)
         GLES20.glEnableVertexAttribArray(mPositionHandle)
+        GLES20.glVertexAttribPointer(
+            mPositionHandle,
+            COUNT_PER_COORD, GLES20.GL_FLOAT, false, 8, 32
+        )
         GLES20.glEnableVertexAttribArray(mTextureCoordinateHandle)
-        GLES20.glVertexAttribPointer(mPositionHandle, COUNT_PER_COORD, GLES20.GL_FLOAT, false, 8, mSecondVertexBuffer)
         GLES20.glVertexAttribPointer(
             mTextureCoordinateHandle,
             COUNT_PER_COORD,
             GLES20.GL_FLOAT,
             false,
             8,
-            mTextureVertexBuffer
+            COORDS.size * 4
         )
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
-
         GLES20.glDisableVertexAttribArray(mPositionHandle)
         GLES20.glDisableVertexAttribArray(mTextureCoordinateHandle)
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
         mTextureRenderer.onDraw()
