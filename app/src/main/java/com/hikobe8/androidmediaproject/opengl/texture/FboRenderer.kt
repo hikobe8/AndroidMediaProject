@@ -77,14 +77,16 @@ class FboRenderer(context: Context, resId: Int = R.drawable.landscape) : GLSurfa
             .allocateDirect(COORDS.size * 4)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
-            .put(COORDS)
-        mVertexBuffer.position(0)
+            .put(COORDS).apply {
+                position(0)
+            }
         mTextureVertexBuffer = ByteBuffer
             .allocateDirect(TEXTURE_COORDS.size * 4)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
-            .put(TEXTURE_COORDS)
-        mTextureVertexBuffer.position(0)
+            .put(TEXTURE_COORDS).apply {
+                position(0)
+            }
         mImageTextureId = createImageTexture()
         mTextureRenderer.onSurfaceCreated()
     }

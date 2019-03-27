@@ -13,7 +13,7 @@ interface RayRenderer {
     fun onDraw()
 }
 
-class RayRendererWrappter(private val renderer: GLSurfaceView.Renderer):RayRenderer {
+class RayRendererWrapper(private val renderer: GLSurfaceView.Renderer):RayRenderer {
     override fun onSurfaceCreated() {
         renderer.onSurfaceCreated(null, null)
     }

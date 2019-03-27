@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.opengl.egl.RayEGLSurfaceView
-import com.hikobe8.androidmediaproject.opengl.egl.RayRendererWrappter
+import com.hikobe8.androidmediaproject.opengl.egl.RayRendererWrapper
 import com.hikobe8.androidmediaproject.opengl.texture.FboRenderer
 import com.hikobe8.androidmediaproject.opengl.texture.TextureRenderer
 import kotlinx.android.synthetic.main.activity_single_texture_multi_surface.*
@@ -29,7 +29,7 @@ class SingleTextureMultiSurfaceActivity : AppCompatActivity(), FboRenderer.OnTex
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_single_texture_multi_surface)
-        surface_origin.setRenderer(RayRendererWrappter(FboRenderer(this).apply {
+        surface_origin.setRenderer(RayRendererWrapper(FboRenderer(this).apply {
             mOnTextureAvailableListener = this@SingleTextureMultiSurfaceActivity
         }))
         surface_origin.setRenderMode(RayEGLSurfaceView.RENDERMODE_WHEN_DIRTY)

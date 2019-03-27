@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.opengl.egl.RayEGLSurfaceView
-import com.hikobe8.androidmediaproject.opengl.egl.RayRendererWrappter
+import com.hikobe8.androidmediaproject.opengl.egl.RayRendererWrapper
 import com.hikobe8.androidmediaproject.opengl.multi_surface.MultiGLSurfaceView
 import com.hikobe8.androidmediaproject.opengl.texture.TextureRenderer
 import kotlinx.android.synthetic.main.activity_single_texture_multi_surface.*
@@ -30,7 +30,7 @@ class SingleSurfaceMultiTextureActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_single_texture_multi_surface)
-        surface_origin.setRenderer(RayRendererWrappter(
+        surface_origin.setRenderer(RayRendererWrapper(
             FboRendererMultiSurface(
                 this
             ).apply {

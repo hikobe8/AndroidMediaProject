@@ -70,4 +70,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
+    <Button
+            android:id="@+id/btn_encode_video"
+            android:text="摄像头摄像编码录制"
+            android:textAllCaps="false"
+            android:onClick="onCLicked"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
 </LinearLayout>

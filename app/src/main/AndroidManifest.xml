@@ -81,6 +81,8 @@
         <activity android:name=".opengl.multi_surface.SingleTextureMultiSurfaceActivity">
         </activity>
         <activity android:name=".opengl.multi_texture.SingleSurfaceMultiTextureActivity"/>
+        <activity android:name=".opengl.egl.camera.RayCameraEncodeActivity">
+        </activity>
     </application>
 
 </manifest>
