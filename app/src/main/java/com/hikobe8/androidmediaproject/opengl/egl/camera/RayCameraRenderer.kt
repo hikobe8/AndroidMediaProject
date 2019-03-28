@@ -1,18 +1,14 @@
 package com.hikobe8.androidmediaproject.opengl.egl.camera
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
-import android.opengl.GLUtils
+import android.opengl.Matrix
 import android.util.Log
-import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.opengl.camera.CameraRenderer
 import com.hikobe8.androidmediaproject.opengl.common.ShaderUtil
 import com.hikobe8.androidmediaproject.opengl.egl.RayRenderer
-import com.hikobe8.androidmediaproject.opengl.texture.FboRenderer
 import com.hikobe8.androidmediaproject.opengl.texture.TextureRenderer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -52,7 +48,6 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
 
     private var mTextureCoordinateHandle = -1
 
-    private var mGlTextureSamplerHandle = -1
     private var mMatrixHandle = -1
 
     private val mContext = context.applicationContext
@@ -65,11 +60,18 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
     private var mSurfaceTexture: SurfaceTexture? = null
     var onSurfaceCreateListener: OnSurfaceCreateListener? = null
     private val mTextureRender = TextureRenderer(context)
+    private val mMatrix = floatArrayOf(
+        1f, 0f, 0f, 0f,
+        0f, 1f, 0f, 0f,
+        0f, 0f, 1f, 0f,
+        0f, 0f, 0f, 1f
+    )
+
 
     override fun onSurfaceCreated() {
         GLES20.glClearColor(1f, 0f, 0f, 1f)
         mTextureRender.onSurfaceCreated()
-        val vertexShader = ShaderUtil.loadShader(mContext!!, "texture/f_vertex.glsl", GLES20.GL_VERTEX_SHADER)
+        val vertexShader = ShaderUtil.loadShader(mContext!!, "texture/t_vertex.glsl", GLES20.GL_VERTEX_SHADER)
         val fragmentShader = ShaderUtil.loadShader(mContext, "camera/fragment_camera.glsl", GLES20.GL_FRAGMENT_SHADER)
         mProgram = GLES20.glCreateProgram()
         GLES20.glAttachShader(mProgram, vertexShader)
@@ -77,8 +79,7 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
         GLES20.glLinkProgram(mProgram)
         mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition")
         mTextureCoordinateHandle = GLES20.glGetAttribLocation(mProgram, "vCoordinate")
-//        mMatrixHandle = GLES20.glGetUniformLocation(mProgram, "vMatrix")
-        mGlTextureSamplerHandle = GLES20.glGetUniformLocation(mProgram, "vTexture")
+        mMatrixHandle = GLES20.glGetUniformLocation(mProgram, "vMatrix")
 
         mVertexBuffer = ByteBuffer
             .allocateDirect(CameraRenderer.COORDS.size * 4)
@@ -92,39 +93,15 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
             .asFloatBuffer()
             .put(CameraRenderer.TEXTURE_COORDS)
         mTextureVertexBuffer.position(0)
-//        mMatrixHandle = GLES20.glGetUniformLocation(mProgram, "vMatrix")
         //create VBO
         createVBO()
-        //create FBO
-        createFBO(720, 1280)
-        mTextureRender.setTextureId(mFboTextureId)
-        //create Camera Texture
-        val cameraTextureIds = IntArray(1)
-        GLES20.glGenTextures(1, cameraTextureIds, 0)
-        mTextureId = cameraTextureIds[0]
-        //绑定纹理
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId)
-        //设置缩小过滤为使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
-        //设置放大过滤为使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
-        //设置环绕方向S，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
-        //设置环绕方向T，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
-
-        mSurfaceTexture = SurfaceTexture(mTextureId)
-        mSurfaceTexture!!.setOnFrameAvailableListener(this)
-        onSurfaceCreateListener?.onSurfaceCreate(mSurfaceTexture!!)
-
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
     }
 
     private fun createVBO() {
         val vbos = IntArray(1)
         GLES20.glGenBuffers(1, vbos, 0)
         mVboId = vbos[0]
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mFboId)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboId)
         GLES20.glBufferData(
             GLES20.GL_ARRAY_BUFFER,
             COORDS.size * 4 + TEXTURE_COORDS.size * 4,
@@ -149,9 +126,32 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
     override fun onSurfaceSizeChanged(width: Int, height: Int) {
         mTextureRender.onSurfaceSizeChanged(width, height)
         GLES20.glViewport(0, 0, width, height)
+        //create FBO
+        createFBO(width, height)
+        mTextureRender.setTextureId(mFboTextureId)
+        //create Camera Texture
+        val cameraTextureIds = IntArray(1)
+        GLES20.glGenTextures(1, cameraTextureIds, 0)
+        mTextureId = cameraTextureIds[0]
+        //绑定纹理
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId)
+        //设置缩小过滤为使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+        //设置放大过滤为使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        //设置环绕方向S，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        //设置环绕方向T，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
 
+        mSurfaceTexture = SurfaceTexture(mTextureId)
+        mSurfaceTexture!!.setOnFrameAvailableListener(this)
+        onSurfaceCreateListener?.onSurfaceCreate(mSurfaceTexture!!)
+
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
+        Matrix.rotateM(mMatrix, 0, 90f, 0f, 0f, 1f)
+        Matrix.scaleM(mMatrix, 0, 1f, -1f,  1f)
     }
-
 
 
     private fun createFBO(width: Int, height: Int) {
@@ -168,8 +168,6 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
         mFboTextureId = textures[0]
         //绑定纹理
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mFboTextureId)
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-//        GLES20.glUniform1i(mGlTextureSamplerHandle, 0)
         //设置缩小过滤为使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
         //设置放大过滤为使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色
@@ -203,16 +201,13 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
 
     override fun onDraw() {
         //更新数据
-//        mSurfaceTexture?.updateTexImage()
+        mSurfaceTexture?.updateTexImage()
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glClearColor(1f, 0f, 0f, 1f)
         GLES20.glUseProgram(mProgram)
-//        GLES20.glUniformMatrix4fv(mMatrixHandle, 1, false, mMatrix, 0)
+        GLES20.glUniformMatrix4fv(mMatrixHandle, 1, false, mMatrix, 0)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFboId)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboId)
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId)
-        GLES20.glUniform1i(mGlTextureSamplerHandle, 0)
         GLES20.glEnableVertexAttribArray(mPositionHandle)
         GLES20.glVertexAttribPointer(mPositionHandle, 2, GLES20.GL_FLOAT, false, 8, 0)
         GLES20.glEnableVertexAttribArray(mTextureCoordinateHandle)
