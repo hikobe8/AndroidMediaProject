@@ -2,6 +2,7 @@ package com.hikobe8.androidmediaproject.opengl.egl.camera
 
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.hardware.Camera
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
@@ -19,7 +20,14 @@ import java.nio.FloatBuffer
  *  Create at 2019-03-27 10:22
  *  description : 相机渲染Renderer,带FBO
  */
-class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameAvailableListener {
+class RayCameraRenderer(
+    context: Context,
+    private var mCameraId: Int
+) : RayRenderer, SurfaceTexture.OnFrameAvailableListener {
+
+    private var mRotation = Camera.CameraInfo().apply {
+        Camera.getCameraInfo(mCameraId, this)
+    }.orientation.toFloat()
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
 
@@ -67,6 +75,21 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
         0f, 0f, 0f, 1f
     )
 
+    fun setCameraId(cameraId: Int) {
+        mCameraId = cameraId
+        this.mRotation = Camera.CameraInfo().apply {
+            Camera.getCameraInfo(mCameraId, this)
+        }.orientation.toFloat()
+        rotateInternal()
+    }
+
+    private fun rotateInternal(){
+        Matrix.setIdentityM(mMatrix, 0)
+        Matrix.rotateM(mMatrix, 0, mRotation, 0f, 0f, 1f)
+        if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
+            Matrix.rotateM(mMatrix, 0, 180f, 1f, 0f, 0f)
+        }
+    }
 
     override fun onSurfaceCreated() {
         GLES20.glClearColor(1f, 0f, 0f, 1f)
@@ -149,8 +172,7 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
         onSurfaceCreateListener?.onSurfaceCreate(mSurfaceTexture!!)
 
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
-        Matrix.rotateM(mMatrix, 0, 90f, 0f, 0f, 1f)
-        Matrix.scaleM(mMatrix, 0, 1f, -1f,  1f)
+        rotateInternal()
     }
 
 
@@ -209,9 +231,16 @@ class RayCameraRenderer(context: Context) : RayRenderer, SurfaceTexture.OnFrameA
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFboId)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboId)
         GLES20.glEnableVertexAttribArray(mPositionHandle)
-        GLES20.glVertexAttribPointer(mPositionHandle, 2, GLES20.GL_FLOAT, false, 8, 0)
+        GLES20.glVertexAttribPointer(mPositionHandle, COUNT_PER_COORD, GLES20.GL_FLOAT, false, 8, 0)
         GLES20.glEnableVertexAttribArray(mTextureCoordinateHandle)
-        GLES20.glVertexAttribPointer(mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 8, COORDS.size * 4)
+        GLES20.glVertexAttribPointer(
+            mTextureCoordinateHandle,
+            COUNT_PER_COORD,
+            GLES20.GL_FLOAT,
+            false,
+            8,
+            COORDS.size * 4
+        )
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)

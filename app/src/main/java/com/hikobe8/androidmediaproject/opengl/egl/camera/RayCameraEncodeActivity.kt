@@ -18,6 +18,9 @@ class RayCameraEncodeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ray_camera_encode)
+        iv_switch.setOnClickListener {
+            camera_view.switch()
+        }
     }
 
     override fun onDestroy() {

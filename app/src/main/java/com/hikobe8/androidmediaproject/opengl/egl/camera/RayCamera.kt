@@ -21,36 +21,18 @@ class RayCamera {
     }
 
     private fun startPreview(cameraId: Int) {
-//        mCamera = Camera.open(cameraId)
-//        mCamera?.let {
-//            mCamera!!.setPreviewTexture(mSurfaceTexture)
-//            val params = mCamera!!.parameters.apply {
-//                flashMode = Camera.Parameters.FLASH_MODE_OFF
-//                previewFormat = ImageFormat.NV21
-//                setPreviewSize(supportedPreviewSizes[0].width, supportedPreviewSizes[0].height)
-//                setPictureSize(supportedPictureSizes[0].width, supportedPictureSizes[0].height)
-//            }
-//            mCamera!!.parameters =  params
-//            mCamera!!.startPreview()
-//        }
         mCamera = Camera.open(cameraId)
-        mCamera!!.setPreviewTexture(mSurfaceTexture)
-        val parameters = mCamera!!.getParameters()
-
-        parameters.setFlashMode("off")
-        parameters.setPreviewFormat(ImageFormat.NV21)
-
-        parameters.setPictureSize(
-            parameters.getSupportedPictureSizes().get(0).width,
-            parameters.getSupportedPictureSizes().get(0).height
-        )
-        parameters.setPreviewSize(
-            parameters.getSupportedPreviewSizes().get(0).width,
-            parameters.getSupportedPreviewSizes().get(0).height
-        )
-
-        mCamera!!.setParameters(parameters)
-        mCamera!!.startPreview()
+        mCamera?.let {
+            mCamera!!.setPreviewTexture(mSurfaceTexture)
+            val params = mCamera!!.parameters.apply {
+                flashMode = Camera.Parameters.FLASH_MODE_OFF
+                previewFormat = ImageFormat.NV21
+                setPreviewSize(supportedPreviewSizes[0].width, supportedPreviewSizes[0].height)
+                setPictureSize(supportedPictureSizes[0].width, supportedPictureSizes[0].height)
+            }
+            mCamera!!.parameters =  params
+            mCamera!!.startPreview()
+        }
     }
 
     fun stopPreview() {
@@ -59,8 +41,9 @@ class RayCamera {
         mCamera = null
     }
 
-    fun switchCamera() {
-
+    fun switchCamera(cameraId: Int) {
+        stopPreview()
+        startPreview(cameraId)
     }
 
 }

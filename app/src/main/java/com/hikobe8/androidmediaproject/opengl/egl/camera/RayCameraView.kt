@@ -13,11 +13,12 @@ import com.hikobe8.androidmediaproject.opengl.egl.RayEGLSurfaceView
  */
 class RayCameraView(context: Context?, attrs: AttributeSet?) : RayEGLSurfaceView(context, attrs) {
 
-    private val mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK
-    private var mCameraRenderer: RayCameraRenderer = RayCameraRenderer(context!!)
+    private var mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT
+    private var mCameraRenderer: RayCameraRenderer
     private var mCamera: RayCamera = RayCamera()
 
     init {
+        mCameraRenderer = RayCameraRenderer(context!!, mCameraId)
         setRenderer(mCameraRenderer)
         mCameraRenderer.onSurfaceCreateListener = object : RayCameraRenderer.OnSurfaceCreateListener {
             override fun onSurfaceCreate(surfaceTexture: SurfaceTexture) {
@@ -28,6 +29,12 @@ class RayCameraView(context: Context?, attrs: AttributeSet?) : RayEGLSurfaceView
 
     fun onDestroy() {
         mCamera.stopPreview()
+    }
+
+    fun switch(){
+        mCameraId = if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) Camera.CameraInfo.CAMERA_FACING_FRONT else Camera.CameraInfo.CAMERA_FACING_BACK
+        mCamera.switchCamera(mCameraId)
+        mCameraRenderer.setCameraId(mCameraId)
     }
 
 }
