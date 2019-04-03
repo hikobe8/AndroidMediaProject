@@ -29,6 +29,10 @@ class RayCamera {
                 previewFormat = ImageFormat.NV21
                 setPreviewSize(supportedPreviewSizes[0].width, supportedPreviewSizes[0].height)
                 setPictureSize(supportedPictureSizes[0].width, supportedPictureSizes[0].height)
+                val focusModes = supportedFocusModes
+                if (focusModes != null && focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+                    focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO
+                }
             }
             mCamera!!.parameters =  params
             mCamera!!.startPreview()

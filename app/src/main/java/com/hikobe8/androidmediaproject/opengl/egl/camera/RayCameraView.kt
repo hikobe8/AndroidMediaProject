@@ -13,16 +13,28 @@ import com.hikobe8.androidmediaproject.opengl.egl.RayEGLSurfaceView
  */
 class RayCameraView(context: Context?, attrs: AttributeSet?) : RayEGLSurfaceView(context, attrs) {
 
-    private var mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT
+    private var mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK
     private var mCameraRenderer: RayCameraRenderer
     private var mCamera: RayCamera = RayCamera()
+
+    interface OnTextureCreateListener {
+        fun onTextureCreate(textureId: Int, width: Int, height: Int)
+    }
+
+    var onTextureCreateListener: OnTextureCreateListener? = null
 
     init {
         mCameraRenderer = RayCameraRenderer(context!!, mCameraId)
         setRenderer(mCameraRenderer)
         mCameraRenderer.onSurfaceCreateListener = object : RayCameraRenderer.OnSurfaceCreateListener {
-            override fun onSurfaceCreate(surfaceTexture: SurfaceTexture) {
+            override fun onSurfaceCreate(
+                surfaceTexture: SurfaceTexture,
+                textureId: Int,
+                width: Int,
+                height: Int
+            ) {
                 mCamera.initCamera(surfaceTexture, mCameraId)
+                onTextureCreateListener?.onTextureCreate(textureId, width, height)
             }
         }
     }
@@ -31,8 +43,9 @@ class RayCameraView(context: Context?, attrs: AttributeSet?) : RayEGLSurfaceView
         mCamera.stopPreview()
     }
 
-    fun switch(){
-        mCameraId = if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) Camera.CameraInfo.CAMERA_FACING_FRONT else Camera.CameraInfo.CAMERA_FACING_BACK
+    fun switch() {
+        mCameraId =
+                if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) Camera.CameraInfo.CAMERA_FACING_FRONT else Camera.CameraInfo.CAMERA_FACING_BACK
         mCamera.switchCamera(mCameraId)
         mCameraRenderer.setCameraId(mCameraId)
     }

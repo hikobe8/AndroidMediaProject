@@ -7,11 +7,11 @@ import android.os.Bundle
 import com.hikobe8.androidmediaproject.R
 import kotlinx.android.synthetic.main.activity_ray_camera_encode.*
 
-class RayCameraEncodeActivity : AppCompatActivity() {
+class RayCameraPreviewActivity : AppCompatActivity() {
 
     companion object {
         fun launch(context: Context) {
-            context.startActivity(Intent(context, RayCameraEncodeActivity::class.java))
+            context.startActivity(Intent(context, RayCameraPreviewActivity::class.java))
         }
     }
 

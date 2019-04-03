@@ -10,9 +10,10 @@ import com.hikobe8.androidmediaproject.opengl.basic.OpenGLBasicDrawActivity
 import com.hikobe8.androidmediaproject.opengl.camera.CameraGLActivity
 import com.hikobe8.androidmediaproject.opengl.egl.CustomizedGLSurfaceActivity
 import com.hikobe8.androidmediaproject.opengl.egl.EglBasicActivity
-import com.hikobe8.androidmediaproject.opengl.egl.camera.RayCameraEncodeActivity
+import com.hikobe8.androidmediaproject.opengl.egl.camera.RayCameraPreviewActivity
 import com.hikobe8.androidmediaproject.opengl.multi_texture.SingleSurfaceMultiTextureActivity
 import com.hikobe8.androidmediaproject.opengl.multi_surface.SingleTextureMultiSurfaceActivity
+import com.hikobe8.androidmediaproject.opengl.record.VideoRecordActivity
 import com.hikobe8.androidmediaproject.opengl.texture.BasicTextureActivity
 import com.hikobe8.androidmediaproject.opengl.texture.FboTextureActivity
 
@@ -44,7 +45,8 @@ class OpenGLMainActivity: AppCompatActivity(){
             R.id.btn_customized_gl -> CustomizedGLSurfaceActivity.launch(this)
             R.id.btn_multi_surface -> SingleTextureMultiSurfaceActivity.launch(this)
             R.id.btn_multi_texture -> SingleSurfaceMultiTextureActivity.launch(this)
-            R.id.btn_encode_video -> RayCameraEncodeActivity.launch(this)
+            R.id.btn_preview -> RayCameraPreviewActivity.launch(this)
+            R.id.btn_encode_video -> VideoRecordActivity.launch(this)
         }
 
     }

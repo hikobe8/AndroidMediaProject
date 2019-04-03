@@ -81,9 +81,12 @@
         <activity android:name=".opengl.multi_surface.SingleTextureMultiSurfaceActivity">
         </activity>
         <activity android:name=".opengl.multi_texture.SingleSurfaceMultiTextureActivity"/>
-        <activity android:name=".opengl.egl.camera.RayCameraEncodeActivity"
-                  android:screenOrientation="portrait">
+        <activity
+                android:name=".opengl.egl.camera.RayCameraPreviewActivity"
+                android:screenOrientation="portrait">
         </activity>
+        <activity android:name=".opengl.record.VideoRecordActivity"
+                  android:theme="@style/AppTheme.FullScreen"/>
     </application>
 
 </manifest>

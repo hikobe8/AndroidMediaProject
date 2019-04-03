@@ -1,81 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-    <Button
-            android:id="@+id/btn_basic"
-            android:text="绘制几何图形"
-            android:textAllCaps="false"
-            android:onClick="onCLicked"
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <Button
-            android:id="@+id/btn_basic_texture"
-            android:text="绘制图片纹理"
-            android:textAllCaps="false"
-            android:onClick="onCLicked"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:id="@+id/btn_basic"
+                android:text="绘制几何图形"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:id="@+id/btn_camera1"
-            android:text="Camera 拍照"
-            android:textAllCaps="false"
-            android:onClick="onCLicked"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:id="@+id/btn_basic_texture"
+                android:text="绘制图片纹理"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:id="@+id/btn_fbo"
-            android:text="FBO"
-            android:textAllCaps="false"
-            android:onClick="onCLicked"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:id="@+id/btn_camera1"
+                android:text="Camera 拍照"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:id="@+id/btn_egl"
-            android:text="EGL"
-            android:textAllCaps="false"
-            android:onClick="onCLicked"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:id="@+id/btn_fbo"
+                android:text="FBO"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:id="@+id/btn_customized_gl"
-            android:text="自定义GLSurfaceVIew"
-            android:textAllCaps="false"
-            android:onClick="onCLicked"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:id="@+id/btn_egl"
+                android:text="EGL"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:id="@+id/btn_multi_surface"
-            android:text="多Surface渲染同一纹理"
-            android:textAllCaps="false"
-            android:onClick="onCLicked"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:id="@+id/btn_customized_gl"
+                android:text="自定义GLSurfaceVIew"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:id="@+id/btn_multi_texture"
-            android:text="单Surface渲染多个纹理"
-            android:textAllCaps="false"
-            android:onClick="onCLicked"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:id="@+id/btn_multi_surface"
+                android:text="多Surface渲染同一纹理"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:id="@+id/btn_encode_video"
-            android:text="摄像头摄像编码录制"
-            android:textAllCaps="false"
-            android:onClick="onCLicked"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:id="@+id/btn_multi_texture"
+                android:text="单Surface渲染多个纹理"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-</LinearLayout>
+        <Button
+                android:id="@+id/btn_preview"
+                android:text="摄像头预览"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+        <Button
+                android:id="@+id/btn_encode_video"
+                android:text="硬件编码录制视频(画面)"
+                android:textAllCaps="false"
+                android:onClick="onCLicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+</ScrollView>

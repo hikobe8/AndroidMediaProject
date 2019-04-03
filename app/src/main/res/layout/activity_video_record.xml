@@ -5,19 +5,27 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".opengl.egl.camera.RayCameraPreviewActivity">
+        tools:context=".opengl.camera.CameraGLActivity">
 
     <com.hikobe8.androidmediaproject.opengl.egl.camera.RayCameraView
             android:id="@+id/camera_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
-    <ImageButton
-            android:layout_margin="16dp"
-            android:id="@+id/iv_switch"
+    <ImageView
             android:layout_gravity="right"
+            android:layout_margin="16dp"
+            android:id="@+id/btn_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             style="?attr/actionButtonStyle"
-            android:src="@drawable/ic_switch"
+            android:src="@drawable/ic_switch"/>
+
+    <Button
+            android:id="@+id/btn_record"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:text="开始"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 

@@ -169,7 +169,7 @@ class RayCameraRenderer(
 
         mSurfaceTexture = SurfaceTexture(mTextureId)
         mSurfaceTexture!!.setOnFrameAvailableListener(this)
-        onSurfaceCreateListener?.onSurfaceCreate(mSurfaceTexture!!)
+        onSurfaceCreateListener?.onSurfaceCreate(mSurfaceTexture!!, mFboTextureId, width, height)
 
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
         rotateInternal()
@@ -251,6 +251,11 @@ class RayCameraRenderer(
     }
 
     interface OnSurfaceCreateListener {
-        fun onSurfaceCreate(surfaceTexture: SurfaceTexture)
+        fun onSurfaceCreate(
+            surfaceTexture: SurfaceTexture,
+            textureId: Int,
+            width: Int,
+            height: Int
+        )
     }
 }
