@@ -68,6 +68,7 @@ class RayCameraRenderer(
     private var mSurfaceTexture: SurfaceTexture? = null
     var onSurfaceCreateListener: OnSurfaceCreateListener? = null
     private val mTextureRender = TextureRenderer(context)
+    private val mWatermarkRenderer = WaterMarkRenderer(context)
     private val mMatrix = floatArrayOf(
         1f, 0f, 0f, 0f,
         0f, 1f, 0f, 0f,
@@ -94,6 +95,7 @@ class RayCameraRenderer(
     override fun onSurfaceCreated() {
         GLES20.glClearColor(1f, 0f, 0f, 1f)
         mTextureRender.onSurfaceCreated()
+        mWatermarkRenderer.onSurfaceCreated()
         val vertexShader = ShaderUtil.loadShader(mContext!!, "texture/t_vertex.glsl", GLES20.GL_VERTEX_SHADER)
         val fragmentShader = ShaderUtil.loadShader(mContext, "camera/fragment_camera.glsl", GLES20.GL_FRAGMENT_SHADER)
         mProgram = GLES20.glCreateProgram()
@@ -148,6 +150,7 @@ class RayCameraRenderer(
 
     override fun onSurfaceSizeChanged(width: Int, height: Int) {
         mTextureRender.onSurfaceSizeChanged(width, height)
+        mWatermarkRenderer.onSurfaceSizeChanged(width, height)
         GLES20.glViewport(0, 0, width, height)
         //create FBO
         createFBO(width, height)
@@ -245,6 +248,7 @@ class RayCameraRenderer(
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
+        mWatermarkRenderer.onDraw()
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
         //draw fbo
         mTextureRender.onDraw()

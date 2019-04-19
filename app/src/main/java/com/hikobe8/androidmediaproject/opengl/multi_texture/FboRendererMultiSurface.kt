@@ -10,6 +10,7 @@ import android.opengl.Matrix
 import android.util.Log
 import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.opengl.common.ShaderUtil
+import com.hikobe8.androidmediaproject.opengl.egl.camera.WaterMarkRenderer
 import com.hikobe8.androidmediaproject.opengl.texture.TextureRenderer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -64,6 +65,7 @@ class FboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj) :
     private lateinit var mVertexBuffer: FloatBuffer
     private lateinit var mTextureVertexBuffer: FloatBuffer
     private var mTextureRenderer: TextureRenderer = TextureRenderer(context)
+    private val mWatermarkFilter = WaterMarkRenderer(context)
     private val mMatrix = FloatArray(16)
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
@@ -110,6 +112,7 @@ class FboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj) :
         mImageTextureId = createImageTexture(mBitmap)
         mSecondImageTextureId =
                 createImageTexture(BitmapFactory.decodeResource(mContext.resources, R.drawable.landscape))
+        mWatermarkFilter.onSurfaceCreated()
         mTextureRenderer.onSurfaceCreated()
     }
 
@@ -169,6 +172,7 @@ class FboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj) :
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
         mTextureRenderer.onSurfaceSizeChanged(width, height)
+        mWatermarkFilter.onSurfaceSizeChanged(width, height)
         createFBO(width, height)
         mOnTextureAvailableListener?.onTextureAvailable(mFboTextureId)
         mTextureRenderer.setTextureId(mFboTextureId)
@@ -253,6 +257,7 @@ class FboRendererMultiSurface(context: Context, resId: Int = R.drawable.fengj) :
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+        mWatermarkFilter.onDraw()
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
         mTextureRenderer.onDraw()
     }
