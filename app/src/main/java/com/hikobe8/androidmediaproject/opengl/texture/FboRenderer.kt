@@ -21,7 +21,7 @@ import javax.microedition.khronos.opengles.GL10
  *  Create at 2019-03-22 16:26
  *  description :
  */
-class FboRenderer(context: Context, resId: Int = R.drawable.landscape) : GLSurfaceView.Renderer {
+class FboRenderer(context: Context, resId: Int = R.mipmap.ic_launcher) : GLSurfaceView.Renderer {
 
     companion object {
         val COORDS = floatArrayOf(
@@ -204,7 +204,12 @@ class FboRenderer(context: Context, resId: Int = R.drawable.landscape) : GLSurfa
         GLES20.glDisableVertexAttribArray(mTextureCoordinateHandle)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST)
+        GLES20.glEnable(GLES20.GL_BLEND)
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+        GLES20.glBlendEquation(GLES20.GL_FUNC_ADD)
         mTextureRenderer.onDraw()
+        GLES20.glDisable(GLES20.GL_BLEND)
     }
 
     interface OnTextureAvailableListener {
