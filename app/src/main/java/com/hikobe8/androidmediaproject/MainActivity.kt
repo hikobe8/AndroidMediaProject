@@ -12,6 +12,7 @@ import com.hikobe8.androidmediaproject.draw.DrawImageActivity
 import com.hikobe8.androidmediaproject.draw.PorterDuffDemoActivity
 import com.hikobe8.androidmediaproject.media.ExtractMuteVideoActivity
 import com.hikobe8.androidmediaproject.mediacodec.CameraRecordWithCodecActivity
+import com.hikobe8.androidmediaproject.mediacodec.MediaCodecDecodeActivity
 import com.hikobe8.androidmediaproject.opengl.OpenGLMainActivity
 import com.hikobe8.audio_extractor.AudioDecoder
 import kotlin.concurrent.thread
@@ -21,9 +22,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        thread {
-          AudioDecoder().initDecoder()
-        }
     }
 
     fun go2DrawImageByView(view: View) {
@@ -64,6 +62,10 @@ class MainActivity : AppCompatActivity() {
 
     fun go2OpenGL(view: View) {
         OpenGLMainActivity.launch(this)
+    }
+
+    fun go2DecodeByCodec(view: View) {
+        MediaCodecDecodeActivity.launch(this)
     }
 
 }

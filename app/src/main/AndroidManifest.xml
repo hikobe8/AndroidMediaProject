@@ -19,6 +19,8 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".mediacodec.MediaCodecDecodeActivity">
+        </activity>
         <activity
                 android:name=".MainActivity"
                 android:theme="@style/ActionBarTheme">
@@ -86,8 +88,9 @@
                 android:name=".opengl.egl.camera.RayCameraPreviewActivity"
                 android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".opengl.record.VideoRecordActivity"
-                  android:theme="@style/AppTheme.FullScreen"/>
+        <activity
+                android:name=".opengl.record.VideoRecordActivity"
+                android:theme="@style/AppTheme.FullScreen"/>
     </application>
 
 </manifest>
