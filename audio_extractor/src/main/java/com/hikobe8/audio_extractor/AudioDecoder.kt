@@ -1,12 +1,12 @@
 package com.hikobe8.audio_extractor
 
+import android.annotation.SuppressLint
 import android.media.*
-
 import android.os.Build
 import android.support.annotation.RequiresApi
 import android.util.Log
-import java.lang.Exception
 import java.nio.ByteBuffer
+import kotlin.concurrent.thread
 
 /***
  *  Author : ryu18356@gmail.com
@@ -26,9 +26,25 @@ class AudioDecoder {
     }
 
     private var mMediaExtractor: MediaExtractor? = null
-    private var mAudioDecoder: MediaCodec? = null
+    private var mAudioCodec: MediaCodec? = null
     private var mAudioTrack: AudioTrack? = null
-    private var mFinished = false
+    private var mFinished = true
+    private var mPlayThread: Thread? = null
+    private var mAudioCallback: AudioInfoCallback? = null
+    private var mClock = 0f
+    private var mDuration = 0L
+
+    /**
+     * 音频信息回调，包含时长，和当前播放长度
+     */
+    interface AudioInfoCallback {
+        fun onGetAudioDuration(duration: Long)
+        fun onGetPlayProgress(progress: Long)
+    }
+
+    fun setAudioCallback(audioCallback: AudioInfoCallback) {
+        mAudioCallback = audioCallback
+    }
 
     //初始化解码器
     fun initDecoder() {
@@ -40,14 +56,16 @@ class AudioDecoder {
             for (i in 0 until trackCount) {
                 val mediaFormat = mMediaExtractor!!.getTrackFormat(i)
                 if (mediaFormat.getString(MediaFormat.KEY_MIME).startsWith("audio")) {
+                    mDuration = mediaFormat.getLong(MediaFormat.KEY_DURATION)
+                    mAudioCallback?.onGetAudioDuration(mDuration)
                     mMediaExtractor!!.selectTrack(i)
 //                    mediaFormat.setString(MediaFormat.KEY_MIME, "audio/mp4a-latm")
                     mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 96000)
                     mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
                     mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 2)
                     mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, 44100)
-                    mAudioDecoder = MediaCodec.createDecoderByType(mediaFormat.getString(MediaFormat.KEY_MIME))
-                    mAudioDecoder!!.configure(mediaFormat, null, null, 0)
+                    mAudioCodec = MediaCodec.createDecoderByType(mediaFormat.getString(MediaFormat.KEY_MIME))
+                    mAudioCodec!!.configure(mediaFormat, null, null, 0)
                     break
                 }
                 Logger.e("no audio track found!")
@@ -55,9 +73,9 @@ class AudioDecoder {
         } catch (e: Exception) {
             mMediaExtractor?.release()
             mMediaExtractor = null
-            mAudioDecoder = null
+            mAudioCodec = null
         }
-        mAudioDecoder?.start()
+        mAudioCodec?.start()
         val bufferSize =
             AudioRecord.getMinBufferSize(
                 DEFAULT_SAMPLE_SIZE,
@@ -74,51 +92,67 @@ class AudioDecoder {
                 AudioTrack.MODE_STREAM
             )
         mAudioTrack!!.play()
-        decode()
+    }
+
+    fun play() {
+        mClock = 0f
+        mFinished = false
+        if (mPlayThread == null) {
+            mPlayThread = thread {
+                initDecoder()
+                decode()
+            }
+        }
     }
 
     fun release() {
+        mClock = 0f
         mFinished = true
+        mPlayThread = null
     }
-
 
     private fun decode() {
         val bufferInfo = MediaCodec.BufferInfo()
+        var lastTime: Float = mClock
         while (!mFinished) {
-            val inputIndex = mAudioDecoder!!.dequeueInputBuffer(0)
-            if (inputIndex < 0) {
-                mFinished = true
+            val inputIndex = mAudioCodec!!.dequeueInputBuffer(0)
+            if (inputIndex >= 0) {
+                val inputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    mAudioCodec!!.getInputBuffer(inputIndex)
+                } else {
+                    mAudioCodec!!.inputBuffers[inputIndex]
+                }
+                inputBuffer!!.clear()
+                val sampleSize = mMediaExtractor!!.readSampleData(inputBuffer, 0)
+                if (sampleSize > 0) {
+                    mAudioCodec!!.queueInputBuffer(inputIndex, 0, sampleSize, 0, 0)
+                    mMediaExtractor!!.advance()
+                } else {
+                    release()
+                }
             }
-            val inputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                mAudioDecoder!!.getInputBuffer(inputIndex)
-            } else {
-                mAudioDecoder!!.inputBuffers[inputIndex]
-            }
-            inputBuffer!!.clear()
-            val sampleSize = mMediaExtractor!!.readSampleData(inputBuffer, 0)
-            if (sampleSize > 0) {
-                mAudioDecoder!!.queueInputBuffer(inputIndex, 0, sampleSize, 0, 0)
-                mMediaExtractor!!.advance()
-            } else {
-                mFinished = true
-                release()
-            }
-            var outputIndex = mAudioDecoder!!.dequeueOutputBuffer(bufferInfo, 0)
-            var outputBuffer: ByteBuffer? = null
-            var chunkPCM: ByteArray? = null
+            var outputIndex = mAudioCodec!!.dequeueOutputBuffer(bufferInfo, 0)
+            var outputBuffer: ByteBuffer?
+            var chunkPCM: ByteArray?
             while (outputIndex >= 0 && !mFinished) {
                 outputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    mAudioDecoder!!.getOutputBuffer(outputIndex)
+                    mAudioCodec!!.getOutputBuffer(outputIndex)
                 } else {
-                    mAudioDecoder!!.outputBuffers[outputIndex]
+                    mAudioCodec!!.outputBuffers[outputIndex]
                 }
                 chunkPCM = ByteArray(bufferInfo.size)
                 outputBuffer.get(chunkPCM)
                 outputBuffer.clear()
                 Logger.w("pcm data = ${chunkPCM.size}")
+                //176400 = 44100 * 2 * 2 双声道 16bit 采样
+                mClock += chunkPCM.size / 176400f
+                if (mClock - lastTime > 0.3f && mClock*1000000 < mDuration) {
+                    mAudioCallback?.onGetPlayProgress(mClock.toLong())
+                    lastTime = mClock
+                }
                 mAudioTrack?.write(chunkPCM, 0, bufferInfo.size)
-                mAudioDecoder!!.releaseOutputBuffer(outputIndex, false)
-                outputIndex = mAudioDecoder?.dequeueOutputBuffer(bufferInfo, 0)?:-1
+                mAudioCodec!!.releaseOutputBuffer(outputIndex, false)
+                outputIndex = mAudioCodec?.dequeueOutputBuffer(bufferInfo, 0) ?: -1
             }
         }
         mMediaExtractor?.release()
@@ -127,13 +161,20 @@ class AudioDecoder {
             mAudioTrack?.stop()
         mAudioTrack?.release()
         mAudioTrack = null
-        mAudioDecoder?.stop()
-        mAudioDecoder?.release()
-        mAudioDecoder = null
+        mAudioCodec?.stop()
+        mAudioCodec?.release()
+        mAudioCodec = null
         Logger.w("decoder released!")
     }
 
-    private class Logger {
+    @SuppressLint("WrongConstant")
+    fun seek(seconds: Int) {
+        mMediaExtractor?.seekTo((seconds * 1000000).toLong(), 2)
+        mClock = seconds.toFloat()
+        mAudioCallback?.onGetPlayProgress(mClock.toLong())
+    }
+
+    class Logger {
         companion object {
 
             val LOG_ENABLE = BuildConfig.DEBUG

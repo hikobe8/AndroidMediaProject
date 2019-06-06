@@ -1,21 +1,19 @@
 package com.hikobe8.androidmediaproject
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.view.View
 import com.hikobe8.androidmediaproject.audio.AudioRecordPlayActivity
-import com.hikobe8.androidmediaproject.mediacodec.AudioRecordPlayWithCodecActivity
-import com.hikobe8.androidmediaproject.camera.camera2.Camera2BasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraBasicActivity
 import com.hikobe8.androidmediaproject.camera.CameraRecordActivity
+import com.hikobe8.androidmediaproject.camera.camera2.Camera2BasicActivity
 import com.hikobe8.androidmediaproject.draw.DrawImageActivity
 import com.hikobe8.androidmediaproject.draw.PorterDuffDemoActivity
 import com.hikobe8.androidmediaproject.media.ExtractMuteVideoActivity
+import com.hikobe8.androidmediaproject.mediacodec.AudioRecordPlayWithCodecActivity
 import com.hikobe8.androidmediaproject.mediacodec.CameraRecordWithCodecActivity
 import com.hikobe8.androidmediaproject.mediacodec.MediaCodecDecodeActivity
 import com.hikobe8.androidmediaproject.opengl.OpenGLMainActivity
-import com.hikobe8.audio_extractor.AudioDecoder
-import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
