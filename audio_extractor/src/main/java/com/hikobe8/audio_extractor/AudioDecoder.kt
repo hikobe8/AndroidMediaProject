@@ -14,9 +14,12 @@ import kotlin.concurrent.thread
  *  description : 音频解码
  */
 @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
-class AudioDecoder {
+class AudioDecoder private constructor() {
 
     companion object {
+
+        fun newInstance() = AudioDecoder()
+
         const val DEFAULT_SAMPLE_SIZE = 44100
         const val DEFAULT_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_STEREO
         const val DEFAULT_CHANNEL_FORMAT = AudioFormat.ENCODING_PCM_16BIT
@@ -32,9 +35,13 @@ class AudioDecoder {
     private var mPlayThread: Thread? = null
     private var mAudioCallback: AudioInfoCallback? = null
     private var mPCMCallback: AudioPCMInfoCallback? = null
+    private var mPreparedListener: DecorderPreparedListener? = null
     private var mClock = 0f
     private var mDuration = 0L
     private var mNeedPlay = true
+    private var mStartPosition = 0
+    private var mDecodeMaxPosition = -1  //解码最大位置(单位秒)，-1表示解码所有数据
+    private var mState = 0 // 0 空闲，解码完成状态 1 解码中状态
 
     /**
      * 音频信息回调，包含时长，和当前播放长度
@@ -45,7 +52,13 @@ class AudioDecoder {
     }
 
     interface AudioPCMInfoCallback {
+        fun onGetPCMInfo(sampleRate: Int, bitRate: Int, channelCount: Int)
         fun onGetPCMChunk(pcmBuffer: ByteArray)
+        fun onComplete()
+    }
+
+    interface DecorderPreparedListener {
+        fun onPrepared()
     }
 
     fun setAudioCallback(audioCallback: AudioInfoCallback) {
@@ -56,11 +69,25 @@ class AudioDecoder {
         mPCMCallback = pcmCallback
     }
 
+    fun setPreparedListener(preparedListener: DecorderPreparedListener) {
+        mPreparedListener = preparedListener
+    }
+
     /**
      * 是否播放
      */
     fun setNeedPlay(needPlay: Boolean) {
         mNeedPlay = needPlay
+    }
+
+    /**
+     * 设置播放起始时间
+     * @param startTimeSecond 起始时间，单位秒
+     * @param duration 播放时长，单位秒
+     */
+    fun setStartPositionAndDuration(startTimeSecond: Int, duration: Int) {
+        mStartPosition = startTimeSecond
+        mDecodeMaxPosition = mStartPosition + duration
     }
 
     //初始化解码器
@@ -83,6 +110,7 @@ class AudioDecoder {
                     mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, 44100)
                     mAudioCodec = MediaCodec.createDecoderByType(mediaFormat.getString(MediaFormat.KEY_MIME))
                     mAudioCodec!!.configure(mediaFormat, null, null, 0)
+                    mPCMCallback?.onGetPCMInfo(44100, 96000, 2)
                     break
                 }
                 Logger.e("no audio track found!")
@@ -113,27 +141,44 @@ class AudioDecoder {
         }
     }
 
+    fun prepare() {
+        if (mState == 1) {
+            return
+        }
+        thread {
+                initDecoder()
+                mPreparedListener?.onPrepared()
+        }
+    }
+
     fun start() {
+        if (mState == 1) {
+            return
+        }
         mClock = 0f
         mFinished = false
         if (mPlayThread == null) {
             mPlayThread = thread {
-                initDecoder()
                 decode()
             }
         }
+        mState = 1
     }
 
     fun release() {
+        if (mState == 1) {
+            return
+        }
         mClock = 0f
         mFinished = true
         mPlayThread = null
+        mState = 0
     }
 
     private fun decode() {
         val bufferInfo = MediaCodec.BufferInfo()
         var lastTime: Float = mClock
-        while (!mFinished) {
+        while (!mFinished && if (mDecodeMaxPosition < 0) true else mClock < mDecodeMaxPosition) {
             val inputIndex = mAudioCodec!!.dequeueInputBuffer(0)
             if (inputIndex >= 0) {
                 val inputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -153,7 +198,7 @@ class AudioDecoder {
             var outputIndex = mAudioCodec!!.dequeueOutputBuffer(bufferInfo, 0)
             var outputBuffer: ByteBuffer?
             var chunkPCM: ByteArray?
-            while (outputIndex >= 0 && !mFinished) {
+            while (outputIndex >= 0 && !mFinished && if (mDecodeMaxPosition < 0) true else mClock < mDecodeMaxPosition) {
                 outputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     mAudioCodec!!.getOutputBuffer(outputIndex)
                 } else {
@@ -185,6 +230,7 @@ class AudioDecoder {
         mAudioCodec?.stop()
         mAudioCodec?.release()
         mAudioCodec = null
+        mPCMCallback?.onComplete()
         Logger.w("decoder released!")
     }
 

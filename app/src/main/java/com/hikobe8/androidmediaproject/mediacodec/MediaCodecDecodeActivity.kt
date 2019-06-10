@@ -24,7 +24,7 @@ class MediaCodecDecodeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_codec_decode)
-        mAudioDecoder = AudioDecoder()
+        mAudioDecoder = AudioDecoder.newInstance()
         mAudioDecoder!!.setAudioCallback(object : AudioDecoder.AudioInfoCallback {
             override fun onGetPlayProgress(progress: Long) {
                 runOnUiThread {
@@ -58,7 +58,12 @@ class MediaCodecDecodeActivity : AppCompatActivity() {
     fun play(v: View) {
         seek.max = 0
         seek.progress = 0
-        mAudioDecoder?.start()
+        mAudioDecoder?.setPreparedListener(object: AudioDecoder.DecorderPreparedListener {
+            override fun onPrepared() {
+                mAudioDecoder?.start()
+            }
+        })
+        mAudioDecoder?.prepare()
         "开始播放".show(this)
     }
 
