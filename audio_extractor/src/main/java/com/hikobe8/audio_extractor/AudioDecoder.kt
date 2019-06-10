@@ -21,7 +21,7 @@ class AudioDecoder {
         const val DEFAULT_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_STEREO
         const val DEFAULT_CHANNEL_FORMAT = AudioFormat.ENCODING_PCM_16BIT
         const val TAG = "AudioDecoder"
-//        const val URL = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3"
+        //        const val URL = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3"
         const val URL = "http://mr1.doubanio.com/d0c4f39e600c9832aaba4962e3eb1a31/0/fm/song/p2286961_128k.mp3"
     }
 
@@ -31,8 +31,10 @@ class AudioDecoder {
     private var mFinished = true
     private var mPlayThread: Thread? = null
     private var mAudioCallback: AudioInfoCallback? = null
+    private var mPCMCallback: AudioPCMInfoCallback? = null
     private var mClock = 0f
     private var mDuration = 0L
+    private var mNeedPlay = true
 
     /**
      * 音频信息回调，包含时长，和当前播放长度
@@ -42,12 +44,27 @@ class AudioDecoder {
         fun onGetPlayProgress(progress: Long)
     }
 
+    interface AudioPCMInfoCallback {
+        fun onGetPCMChunk(pcmBuffer: ByteArray)
+    }
+
     fun setAudioCallback(audioCallback: AudioInfoCallback) {
         mAudioCallback = audioCallback
     }
 
+    fun setAudioPCMCallback(pcmCallback: AudioPCMInfoCallback) {
+        mPCMCallback = pcmCallback
+    }
+
+    /**
+     * 是否播放
+     */
+    fun setNeedPlay(needPlay: Boolean) {
+        mNeedPlay = needPlay
+    }
+
     //初始化解码器
-    fun initDecoder() {
+    private fun initDecoder() {
         mMediaExtractor = MediaExtractor()
         mMediaExtractor!!.setDataSource(URL)
         val trackCount = mMediaExtractor!!.trackCount
@@ -82,19 +99,21 @@ class AudioDecoder {
                 DEFAULT_CHANNEL_CONFIG,
                 DEFAULT_CHANNEL_FORMAT
             )
-        mAudioTrack =
-            AudioTrack(
-                AudioManager.STREAM_MUSIC,
-                DEFAULT_SAMPLE_SIZE,
-                AudioFormat.CHANNEL_IN_STEREO,
-                AudioFormat.ENCODING_PCM_16BIT,
-                bufferSize,
-                AudioTrack.MODE_STREAM
-            )
-        mAudioTrack!!.play()
+        if (mNeedPlay) {
+            mAudioTrack =
+                AudioTrack(
+                    AudioManager.STREAM_MUSIC,
+                    DEFAULT_SAMPLE_SIZE,
+                    AudioFormat.CHANNEL_IN_STEREO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    bufferSize,
+                    AudioTrack.MODE_STREAM
+                )
+            mAudioTrack!!.play()
+        }
     }
 
-    fun play() {
+    fun start() {
         mClock = 0f
         mFinished = false
         if (mPlayThread == null) {
@@ -146,10 +165,12 @@ class AudioDecoder {
                 Logger.w("pcm data = ${chunkPCM.size}")
                 //176400 = 44100 * 2 * 2 双声道 16bit 采样
                 mClock += chunkPCM.size / 176400f
-                if (mClock - lastTime > 0.3f && mClock*1000000 < mDuration) {
+                if (mClock - lastTime > 0.3f && mClock * 1000000 < mDuration) {
                     mAudioCallback?.onGetPlayProgress(mClock.toLong())
                     lastTime = mClock
                 }
+                if (chunkPCM.isNotEmpty())
+                    mPCMCallback?.onGetPCMChunk(chunkPCM)
                 mAudioTrack?.write(chunkPCM, 0, bufferInfo.size)
                 mAudioCodec!!.releaseOutputBuffer(outputIndex, false)
                 outputIndex = mAudioCodec?.dequeueOutputBuffer(bufferInfo, 0) ?: -1

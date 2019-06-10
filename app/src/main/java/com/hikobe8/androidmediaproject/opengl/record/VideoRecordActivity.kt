@@ -9,6 +9,7 @@ import android.util.Log
 import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.opengl.egl.camera.RayCameraView
 import com.hikobe8.androidmediaproject.show
+import com.hikobe8.audio_extractor.AudioDecoder
 import kotlinx.android.synthetic.main.activity_video_record.*
 import java.io.File
 
@@ -32,7 +33,7 @@ class VideoRecordActivity : AppCompatActivity() {
                 mVideoEncodec = RayMediaEncodec(this@VideoRecordActivity, textureId)
                 mVideoEncodec!!.initEncodec(camera_view.getEGLContext()!!,
                     Environment.getExternalStorageDirectory().absolutePath + File.separator + "test_record.mp4",
-                    MediaFormat.MIMETYPE_VIDEO_AVC, width, height
+                    MediaFormat.MIMETYPE_VIDEO_AVC, width, height, 44100
                 )
                 mState = 0 // 视频录制准备工作就绪
                 mVideoEncodec!!.onProgressChangeListener = object :RayBaseMediaEncoder.ProgressChangeListener{
@@ -51,6 +52,15 @@ class VideoRecordActivity : AppCompatActivity() {
                 "尚未就绪".show(this)
             } else {
                 if (mState == 0) {
+                    AudioDecoder().apply {
+                        setNeedPlay(false)
+                        setAudioPCMCallback(object :AudioDecoder.AudioPCMInfoCallback{
+                            override fun onGetPCMChunk(pcmBuffer: ByteArray) {
+                                mVideoEncodec?.putPCMData(pcmBuffer, pcmBuffer.size)
+                            }
+
+                        })
+                    }.start()
                     mState = 1
                     btn_record.text = "正在录制"
                     mVideoEncodec?.startRecord()

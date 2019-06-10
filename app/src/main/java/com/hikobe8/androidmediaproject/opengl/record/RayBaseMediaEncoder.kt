@@ -50,10 +50,18 @@ abstract class RayBaseMediaEncoder {
         RayEGLSurfaceView.RENDERMODE_CONTINUOUSLY
     private var mGLMediaThread: RayEGLMediaThread? = null
     private var mVideoEncodecThread: VideoEncodecThread? = null
+    private var mAudioEncodecThread: AudioEncodeThread? = null
 
     private var mVideoEncodec: MediaCodec? = null
     private var mVideoBufferInfo: MediaCodec.BufferInfo? = null
     private var mVideoFormat: MediaFormat? = null
+
+    private var mAudioEncodec: MediaCodec? = null
+    private var mAudioBufferInfo: MediaCodec.BufferInfo? = null
+    private var mAudioFormat: MediaFormat? = null
+    private var mAudioPts: Long = 0
+    private var mEncodeStart = false
+
     private var mMediaMuxer: MediaMuxer? = null
     var onProgressChangeListener: ProgressChangeListener? = null
 
@@ -71,12 +79,20 @@ abstract class RayBaseMediaEncoder {
     /**
      * 初始化编码器
      */
-    fun initEncodec(eglContext: EGLContext, savePath: String, mimeType: String, width: Int, height: Int) {
+    fun initEncodec(
+        eglContext: EGLContext,
+        savePath: String,
+        mimeType: String,
+        width: Int,
+        height: Int,
+        sampleRate: Int
+    ) {
         mEglContext = eglContext
         mWidth = width
         mHeight = height
         mMediaMuxer = MediaMuxer(savePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         initVideoEncodec(mimeType, width, height)
+        initAudioEncodec(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2)
     }
 
     /**
@@ -95,22 +111,60 @@ abstract class RayBaseMediaEncoder {
         mSurface = mVideoEncodec!!.createInputSurface()
     }
 
-    fun startRecord(){
-        if (mSurface !=null && mEglContext !=null) {
+    /**
+     * 初始化音频编码器
+     */
+    private fun initAudioEncodec(mimeType: String, sampleRate: Int, channelCount: Int) {
+        mAudioSampleRate = sampleRate
+        mAudioBufferInfo = MediaCodec.BufferInfo()
+        mAudioFormat = MediaFormat.createAudioFormat(mimeType, sampleRate, channelCount)
+        mAudioFormat!!.setInteger(MediaFormat.KEY_BIT_RATE, 96000)
+        mAudioFormat!!.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
+        mAudioFormat!!.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 8192)
+
+        mAudioEncodec = MediaCodec.createEncoderByType(mimeType)
+        mAudioEncodec!!.configure(mAudioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+    }
+
+    fun startRecord() {
+        if (mSurface != null && mEglContext != null) {
             mGLMediaThread = RayEGLMediaThread(WeakReference(this))
             mVideoEncodecThread = VideoEncodecThread(WeakReference(this))
+            mAudioEncodecThread = AudioEncodeThread(WeakReference(this))
             mGLMediaThread!!.mCreated = true
             mGLMediaThread!!.mSizeChanged = true
             mGLMediaThread!!.start()
             mVideoEncodecThread!!.start()
+            mAudioEncodecThread?.start()
         }
     }
 
-    fun stopRecord(){
+    fun stopRecord() {
+        mAudioEncodecThread?.exit()
         mVideoEncodecThread?.exit()
         mGLMediaThread?.onDestroy()
         mVideoEncodecThread = null
         mGLMediaThread = null
+    }
+
+    private var mAudioSampleRate: Int = 0
+
+    fun putPCMData(buffer: ByteArray, size: Int) {
+        if (mAudioEncodecThread != null && mAudioEncodecThread?.mExit == false && size > 0 && mEncodeStart) {
+            val inputBufferindex = mAudioEncodec!!.dequeueInputBuffer(0)
+            if (inputBufferindex >= 0) {
+                val byteBuffer = mAudioEncodec!!.inputBuffers[inputBufferindex]
+                byteBuffer.clear()
+                byteBuffer.put(buffer)
+                val pts = getAudioPts(size, mAudioSampleRate)
+                mAudioEncodec!!.queueInputBuffer(inputBufferindex, 0, size, pts, 0)
+            }
+        }
+    }
+
+    private fun getAudioPts(size: Int, sampleRate: Int): Long {
+        mAudioPts += ((size.toFloat() / sampleRate * 2 * 2) * 1000000).toLong()
+        return mAudioPts
     }
 
     class RayEGLMediaThread(private val mEncoderWeakRef: WeakReference<RayBaseMediaEncoder>) : Thread() {
@@ -206,7 +260,7 @@ abstract class RayBaseMediaEncoder {
         private var mVideoEncodec = mEncoderWeakRef.get()?.mVideoEncodec
         private var mVideoBufferInfo = mEncoderWeakRef.get()?.mVideoBufferInfo
         private var mMediaMuxer = mEncoderWeakRef.get()?.mMediaMuxer
-        private var mVideoTrackIndex = 0
+        var mVideoTrackIndex = 0
         private var mPts = 0L
 
         override fun run() {
@@ -222,9 +276,13 @@ abstract class RayBaseMediaEncoder {
                     mVideoEncodec?.release()
                     mVideoEncodec = null
 
-                    mMediaMuxer?.stop()
-                    mMediaMuxer?.release()
-                    mMediaMuxer = null
+                    if (mEncoderWeakRef.get()?.mEncodeStart == true) {
+                        mMediaMuxer?.stop()
+                        mMediaMuxer?.release()
+                        mMediaMuxer = null
+                        mEncoderWeakRef.get()?.mEncodeStart = false
+                    }
+
                     Log.d(TAG, "录制完成")
                     break
                 }
@@ -233,30 +291,35 @@ abstract class RayBaseMediaEncoder {
                 if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     //开始muxer
                     mVideoTrackIndex = mMediaMuxer!!.addTrack(mVideoEncodec!!.outputFormat)
-                    mMediaMuxer!!.start()
+                    if (mEncoderWeakRef.get()?.mAudioEncodecThread?.mAudioTrackIndex == -1) {
+                        mMediaMuxer?.start()
+                        mEncoderWeakRef.get()?.mEncodeStart = true
+                    }
                 } else {
-                    while (outputBufferIndex >= 0) {
+                    if (mEncoderWeakRef.get()?.mEncodeStart == true) {
+                        while (outputBufferIndex >= 0) {
 
-                        val outputBuffer = mVideoEncodec!!.outputBuffers[outputBufferIndex]
-                        outputBuffer.position(mVideoBufferInfo!!.offset)
-                        outputBuffer.limit(mVideoBufferInfo!!.offset + mVideoBufferInfo!!.size)
+                            val outputBuffer = mVideoEncodec!!.outputBuffers[outputBufferIndex]
+                            outputBuffer.position(mVideoBufferInfo!!.offset)
+                            outputBuffer.limit(mVideoBufferInfo!!.offset + mVideoBufferInfo!!.size)
 
-                        if (mPts == 0L) {
-                            mPts = mVideoBufferInfo!!.presentationTimeUs
+                            if (mPts == 0L) {
+                                mPts = mVideoBufferInfo!!.presentationTimeUs
+                            }
+
+                            mVideoBufferInfo!!.presentationTimeUs = mVideoBufferInfo!!.presentationTimeUs - mPts
+
+                            mMediaMuxer!!.writeSampleData(mVideoTrackIndex, outputBuffer, mVideoBufferInfo!!)
+
+                            mEncoderWeakRef.get()?.let {
+                                it.onProgressChangeListener?.onProgressChange(
+                                    (mVideoBufferInfo!!.presentationTimeUs / 1000000).toInt()
+                                )
+                            }
+
+                            mVideoEncodec!!.releaseOutputBuffer(outputBufferIndex, false)
+                            outputBufferIndex = mVideoEncodec!!.dequeueOutputBuffer(mVideoBufferInfo!!, 0L)
                         }
-
-                        mVideoBufferInfo!!.presentationTimeUs = mVideoBufferInfo!!.presentationTimeUs - mPts
-
-                        mMediaMuxer!!.writeSampleData(mVideoTrackIndex, outputBuffer, mVideoBufferInfo!!)
-
-                        mEncoderWeakRef.get()?.let {
-                            it.onProgressChangeListener?.onProgressChange(
-                                (mVideoBufferInfo!!.presentationTimeUs / 1000000).toInt()
-                            )
-                        }
-
-                        mVideoEncodec!!.releaseOutputBuffer(outputBufferIndex, false)
-                        outputBufferIndex = mVideoEncodec!!.dequeueOutputBuffer(mVideoBufferInfo!!, 0L)
                     }
                 }
 
@@ -266,6 +329,74 @@ abstract class RayBaseMediaEncoder {
 
         fun exit() {
             mExit = true
+        }
+
+    }
+
+    class AudioEncodeThread(private val mEncoderWeakRef: WeakReference<RayBaseMediaEncoder>) : Thread() {
+
+        var mExit = false
+        private var mAudioEncodec = mEncoderWeakRef.get()?.mAudioEncodec
+        private var mAudioBufferInfo = mEncoderWeakRef.get()?.mAudioBufferInfo
+        private var mMediaMuxer = mEncoderWeakRef.get()?.mMediaMuxer
+        var mAudioTrackIndex = 0
+        private var mPts = 0L
+
+        fun exit() {
+            mExit = true
+        }
+
+        override fun run() {
+            mPts = 0L
+            mAudioTrackIndex = -1
+            mExit = false
+            mAudioEncodec?.start()
+            while (true) {
+
+                if (mExit) {
+                    //退出音频编码
+                    mAudioEncodec?.stop()
+                    mAudioEncodec?.release()
+                    mAudioEncodec = null
+
+                    if (mEncoderWeakRef.get()?.mEncodeStart == true) {
+                        mMediaMuxer?.stop()
+                        mMediaMuxer?.release()
+                        mMediaMuxer = null
+                        mEncoderWeakRef.get()?.mEncodeStart = false
+                    }
+
+                    break
+                }
+
+                var outputBufferIndex = mAudioEncodec!!.dequeueOutputBuffer(mAudioBufferInfo!!, 0)
+
+                if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    mAudioTrackIndex = mMediaMuxer!!.addTrack(mAudioEncodec!!.outputFormat)
+                    if (mEncoderWeakRef.get()?.mVideoEncodecThread?.mVideoTrackIndex == -1) {
+                        mMediaMuxer?.start()
+                        mEncoderWeakRef.get()?.mEncodeStart = true
+                    }
+                } else {
+                    if (mEncoderWeakRef.get()?.mEncodeStart == true) {
+                        while (outputBufferIndex >= 0) {
+                            val outputBuffer = mAudioEncodec!!.outputBuffers[outputBufferIndex]
+                            outputBuffer.position(mAudioBufferInfo!!.offset)
+                            outputBuffer.limit(mAudioBufferInfo!!.offset + mAudioBufferInfo!!.size)
+                            if (mPts == 0L) {
+                                mPts = mAudioBufferInfo!!.presentationTimeUs
+                            }
+
+                            mAudioBufferInfo!!.presentationTimeUs = mAudioBufferInfo!!.presentationTimeUs - mPts
+
+                            mMediaMuxer!!.writeSampleData(mAudioTrackIndex, outputBuffer, mAudioBufferInfo!!)
+                            mAudioEncodec?.releaseOutputBuffer(outputBufferIndex, false)
+                            outputBufferIndex = mAudioEncodec!!.dequeueOutputBuffer(mAudioBufferInfo!!, 0)
+                        }
+                    }
+                }
+            }
+
         }
 
     }

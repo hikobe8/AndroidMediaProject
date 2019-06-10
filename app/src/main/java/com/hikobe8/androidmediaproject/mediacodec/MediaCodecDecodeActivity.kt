@@ -10,8 +10,6 @@ import com.hikobe8.androidmediaproject.R
 import com.hikobe8.androidmediaproject.show
 import com.hikobe8.audio_extractor.AudioDecoder
 import kotlinx.android.synthetic.main.activity_media_codec_decode.*
-import java.lang.StringBuilder
-import kotlin.concurrent.thread
 
 class MediaCodecDecodeActivity : AppCompatActivity() {
 
@@ -60,7 +58,7 @@ class MediaCodecDecodeActivity : AppCompatActivity() {
     fun play(v: View) {
         seek.max = 0
         seek.progress = 0
-        mAudioDecoder?.play()
+        mAudioDecoder?.start()
         "开始播放".show(this)
     }
 
