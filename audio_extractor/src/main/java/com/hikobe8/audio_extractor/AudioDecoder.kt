@@ -146,8 +146,8 @@ class AudioDecoder private constructor() {
             return
         }
         thread {
-                initDecoder()
-                mPreparedListener?.onPrepared()
+            initDecoder()
+            mPreparedListener?.onPrepared()
         }
     }
 
@@ -166,7 +166,7 @@ class AudioDecoder private constructor() {
     }
 
     fun release() {
-        if (mState == 1) {
+        if (mState == 0) {
             return
         }
         mClock = 0f
@@ -231,6 +231,7 @@ class AudioDecoder private constructor() {
         mAudioCodec?.release()
         mAudioCodec = null
         mPCMCallback?.onComplete()
+        release()
         Logger.w("decoder released!")
     }
 
