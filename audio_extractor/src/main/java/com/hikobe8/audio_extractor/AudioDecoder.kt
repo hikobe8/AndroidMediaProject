@@ -139,6 +139,9 @@ class AudioDecoder private constructor() {
                 )
             mAudioTrack!!.play()
         }
+        if (mDecodeMaxPosition > 0) {
+            seek(mStartPosition)
+        }
     }
 
     fun prepare() {
@@ -146,6 +149,8 @@ class AudioDecoder private constructor() {
             return
         }
         thread {
+            mClock = 0f
+            mFinished = false
             initDecoder()
             mPreparedListener?.onPrepared()
         }
@@ -155,8 +160,6 @@ class AudioDecoder private constructor() {
         if (mState == 1) {
             return
         }
-        mClock = 0f
-        mFinished = false
         if (mPlayThread == null) {
             mPlayThread = thread {
                 decode()

@@ -61,6 +61,8 @@ abstract class RayBaseMediaEncoder {
     private var mAudioFormat: MediaFormat? = null
     private var mAudioPts: Long = 0
     private var mEncodeStart = false
+    private var mAudioExit: Boolean = false
+    private var mVideoExit: Boolean = false
 
     private var mMediaMuxer: MediaMuxer? = null
     var onProgressChangeListener: ProgressChangeListener? = null
@@ -85,14 +87,15 @@ abstract class RayBaseMediaEncoder {
         mimeType: String,
         width: Int,
         height: Int,
-        sampleRate: Int
+        sampleRate: Int,
+        channelCount: Int
     ) {
         mEglContext = eglContext
         mWidth = width
         mHeight = height
         mMediaMuxer = MediaMuxer(savePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         initVideoEncodec(mimeType, width, height)
-        initAudioEncodec(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2)
+        initAudioEncodec(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channelCount)
     }
 
     /**
@@ -151,19 +154,19 @@ abstract class RayBaseMediaEncoder {
 
     fun putPCMData(buffer: ByteArray, size: Int) {
         if (mAudioEncodecThread != null && mAudioEncodecThread?.mExit == false && size > 0 && mEncodeStart) {
-            val inputBufferindex = mAudioEncodec!!.dequeueInputBuffer(0)
-            if (inputBufferindex >= 0) {
-                val byteBuffer = mAudioEncodec!!.inputBuffers[inputBufferindex]
+            val inputBufferIndex = mAudioEncodec!!.dequeueInputBuffer(0)
+            if (inputBufferIndex >= 0) {
+                val byteBuffer = mAudioEncodec!!.inputBuffers[inputBufferIndex]
                 byteBuffer.clear()
                 byteBuffer.put(buffer)
                 val pts = getAudioPts(size, mAudioSampleRate)
-                mAudioEncodec!!.queueInputBuffer(inputBufferindex, 0, size, pts, 0)
+                mAudioEncodec!!.queueInputBuffer(inputBufferIndex, 0, size, pts, 0)
             }
         }
     }
 
     private fun getAudioPts(size: Int, sampleRate: Int): Long {
-        mAudioPts += ((size.toFloat() / sampleRate * 2 * 2) * 1000000).toLong()
+        mAudioPts += (size.toDouble() / (sampleRate * 2 * 2) * 1000000.0).toLong()
         return mAudioPts
     }
 
@@ -275,12 +278,11 @@ abstract class RayBaseMediaEncoder {
                     mVideoEncodec?.stop()
                     mVideoEncodec?.release()
                     mVideoEncodec = null
-
-                    if (mEncoderWeakRef.get()?.mEncodeStart == true) {
+                    mEncoderWeakRef.get()?.mVideoExit = true
+                    if (mEncoderWeakRef.get()?.mAudioExit == true) {
                         mMediaMuxer?.stop()
                         mMediaMuxer?.release()
                         mMediaMuxer = null
-                        mEncoderWeakRef.get()?.mEncodeStart = false
                     }
 
                     Log.d(TAG, "录制完成")
@@ -291,14 +293,13 @@ abstract class RayBaseMediaEncoder {
                 if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     //开始muxer
                     mVideoTrackIndex = mMediaMuxer!!.addTrack(mVideoEncodec!!.outputFormat)
-                    if (mEncoderWeakRef.get()?.mAudioEncodecThread?.mAudioTrackIndex == -1) {
+                    if (mEncoderWeakRef.get()?.mAudioEncodecThread?.mAudioTrackIndex != -1) {
                         mMediaMuxer?.start()
                         mEncoderWeakRef.get()?.mEncodeStart = true
                     }
                 } else {
-                    if (mEncoderWeakRef.get()?.mEncodeStart == true) {
-                        while (outputBufferIndex >= 0) {
-
+                    while (outputBufferIndex >= 0) {
+                        if (mEncoderWeakRef.get()?.mEncodeStart == true) {
                             val outputBuffer = mVideoEncodec!!.outputBuffers[outputBufferIndex]
                             outputBuffer.position(mVideoBufferInfo!!.offset)
                             outputBuffer.limit(mVideoBufferInfo!!.offset + mVideoBufferInfo!!.size)
@@ -339,7 +340,7 @@ abstract class RayBaseMediaEncoder {
         private var mAudioEncodec = mEncoderWeakRef.get()?.mAudioEncodec
         private var mAudioBufferInfo = mEncoderWeakRef.get()?.mAudioBufferInfo
         private var mMediaMuxer = mEncoderWeakRef.get()?.mMediaMuxer
-        var mAudioTrackIndex = 0
+        var mAudioTrackIndex = -1
         private var mPts = 0L
 
         fun exit() {
@@ -358,12 +359,11 @@ abstract class RayBaseMediaEncoder {
                     mAudioEncodec?.stop()
                     mAudioEncodec?.release()
                     mAudioEncodec = null
-
-                    if (mEncoderWeakRef.get()?.mEncodeStart == true) {
+                    mEncoderWeakRef.get()?.mAudioExit = true
+                    if (mEncoderWeakRef.get()?.mVideoExit == true) {
                         mMediaMuxer?.stop()
                         mMediaMuxer?.release()
                         mMediaMuxer = null
-                        mEncoderWeakRef.get()?.mEncodeStart = false
                     }
 
                     break
@@ -373,13 +373,13 @@ abstract class RayBaseMediaEncoder {
 
                 if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     mAudioTrackIndex = mMediaMuxer!!.addTrack(mAudioEncodec!!.outputFormat)
-                    if (mEncoderWeakRef.get()?.mVideoEncodecThread?.mVideoTrackIndex == -1) {
+                    if (mEncoderWeakRef.get()?.mVideoEncodecThread?.mVideoTrackIndex != -1) {
                         mMediaMuxer?.start()
                         mEncoderWeakRef.get()?.mEncodeStart = true
                     }
                 } else {
-                    if (mEncoderWeakRef.get()?.mEncodeStart == true) {
-                        while (outputBufferIndex >= 0) {
+                    while (outputBufferIndex >= 0) {
+                        if (mEncoderWeakRef.get()?.mEncodeStart == true) {
                             val outputBuffer = mAudioEncodec!!.outputBuffers[outputBufferIndex]
                             outputBuffer.position(mAudioBufferInfo!!.offset)
                             outputBuffer.limit(mAudioBufferInfo!!.offset + mAudioBufferInfo!!.size)
