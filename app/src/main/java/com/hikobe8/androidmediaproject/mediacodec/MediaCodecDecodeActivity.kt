@@ -58,7 +58,7 @@ class MediaCodecDecodeActivity : AppCompatActivity() {
     fun play(v: View) {
         seek.max = 0
         seek.progress = 0
-        mAudioDecoder?.setPreparedListener(object: AudioDecoder.DecorderPreparedListener {
+        mAudioDecoder?.setPreparedListener(object: AudioDecoder.DecoderPreparedListener {
             override fun onPrepared() {
                 mAudioDecoder?.start()
             }

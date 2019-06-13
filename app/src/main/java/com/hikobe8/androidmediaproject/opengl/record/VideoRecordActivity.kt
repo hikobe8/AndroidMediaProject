@@ -49,7 +49,7 @@ class VideoRecordActivity : AppCompatActivity() {
                 AudioDecoder
                     .newInstance().apply {
                         setNeedPlay(false)
-                        setPreparedListener(object : AudioDecoder.DecorderPreparedListener {
+                        setPreparedListener(object : AudioDecoder.DecoderPreparedListener {
                             override fun onPrepared() {
                                 start()
                             }

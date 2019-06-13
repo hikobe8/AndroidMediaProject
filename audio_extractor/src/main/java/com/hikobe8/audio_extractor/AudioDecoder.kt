@@ -35,7 +35,7 @@ class AudioDecoder private constructor() {
     private var mPlayThread: Thread? = null
     private var mAudioCallback: AudioInfoCallback? = null
     private var mPCMCallback: AudioPCMInfoCallback? = null
-    private var mPreparedListener: DecorderPreparedListener? = null
+    private var mPreparedListener: DecoderPreparedListener? = null
     private var mClock = 0f
     private var mDuration = 0L
     private var mNeedPlay = true
@@ -57,7 +57,7 @@ class AudioDecoder private constructor() {
         fun onComplete()
     }
 
-    interface DecorderPreparedListener {
+    interface DecoderPreparedListener {
         fun onPrepared()
     }
 
@@ -69,7 +69,7 @@ class AudioDecoder private constructor() {
         mPCMCallback = pcmCallback
     }
 
-    fun setPreparedListener(preparedListener: DecorderPreparedListener) {
+    fun setPreparedListener(preparedListener: DecoderPreparedListener) {
         mPreparedListener = preparedListener
     }
 
