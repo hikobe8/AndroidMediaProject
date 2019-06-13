@@ -19,6 +19,9 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".mediacodec.EncodeImages2VideoActivity"
+        android:screenOrientation="portrait">
+        </activity>
         <activity android:name=".mediacodec.MediaCodecDecodeActivity">
         </activity>
         <activity

@@ -1,87 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        tools:context=".MainActivity">
+        android:layout_height="match_parent">
 
-    <Button
-        android:text="使用View，SurfaceView绘制图片"
-        android:textAllCaps="false"
-        android:onClick="go2DrawImageByView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <Button
-            android:text="使用PorterDuffMode处理图片"
-            android:textAllCaps="false"
-            android:onClick="go2PorterDuff"
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            tools:context=".MainActivity">
 
-    <Button
-            android:text="使用AudioRecord/AudioTrack录制播放PCM音频"
-            android:textAllCaps="false"
-            android:onClick="go2AudioRecordPlay"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:text="使用View，SurfaceView绘制图片"
+                android:textAllCaps="false"
+                android:onClick="go2DrawImageByView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:text="Camera拍照"
-            android:textAllCaps="false"
-            android:onClick="go2CameraCapture"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:text="使用PorterDuffMode处理图片"
+                android:textAllCaps="false"
+                android:onClick="go2PorterDuff"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:text="Camera录像"
-            android:textAllCaps="false"
-            android:onClick="go2CameraRecord"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:text="使用AudioRecord/AudioTrack录制播放PCM音频"
+                android:textAllCaps="false"
+                android:onClick="go2AudioRecordPlay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:text="提取无声MP4"
-            android:textAllCaps="false"
-            android:onClick="go2MP4Extraction"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:text="Camera拍照"
+                android:textAllCaps="false"
+                android:onClick="go2CameraCapture"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:text="Camera2拍照/录像"
-            android:textAllCaps="false"
-            android:onClick="go2Camera2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:text="Camera录像"
+                android:textAllCaps="false"
+                android:onClick="go2CameraRecord"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:text="使用MediaCodec录制播放AAC音频"
-            android:textAllCaps="false"
-            android:onClick="go2AudioRecordPlayAAC"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:text="提取无声MP4"
+                android:textAllCaps="false"
+                android:onClick="go2MP4Extraction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:text="使用MediaCodec录制H.264视频"
-            android:textAllCaps="false"
-            android:onClick="go2RecordH264"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:text="Camera2拍照/录像"
+                android:textAllCaps="false"
+                android:onClick="go2Camera2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:text="OpenGlES"
-            android:textAllCaps="false"
-            android:onClick="go2OpenGL"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:text="使用MediaCodec录制播放AAC音频"
+                android:textAllCaps="false"
+                android:onClick="go2AudioRecordPlayAAC"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    <Button
-            android:text="MediaCodec硬解码音乐"
-            android:textAllCaps="false"
-            android:onClick="go2DecodeByCodec"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <Button
+                android:text="使用MediaCodec录制H.264视频"
+                android:textAllCaps="false"
+                android:onClick="go2RecordH264"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-</LinearLayout>
+        <Button
+                android:text="OpenGlES"
+                android:textAllCaps="false"
+                android:onClick="go2OpenGL"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+        <Button
+                android:text="MediaCodec硬解码音乐"
+                android:textAllCaps="false"
+                android:onClick="go2DecodeByCodec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+        <Button
+                android:text="MediaCodec编码图片为视频"
+                android:textAllCaps="false"
+                android:onClick="go2EncodeImagesToVideo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+</ScrollView>

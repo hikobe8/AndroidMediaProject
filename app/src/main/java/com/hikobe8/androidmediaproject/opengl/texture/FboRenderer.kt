@@ -21,7 +21,7 @@ import javax.microedition.khronos.opengles.GL10
  *  Create at 2019-03-22 16:26
  *  description :
  */
-class FboRenderer(context: Context, resId: Int = R.mipmap.ic_launcher) : GLSurfaceView.Renderer {
+class FboRenderer(context: Context, resId: Int = R.drawable.batman) : GLSurfaceView.Renderer {
 
     companion object {
         val COORDS = floatArrayOf(
@@ -89,6 +89,10 @@ class FboRenderer(context: Context, resId: Int = R.mipmap.ic_launcher) : GLSurfa
             }
         mImageTextureId = createImageTexture()
         mTextureRenderer.onSurfaceCreated()
+    }
+
+    fun setImageResId(imgResId: Int) {
+        mResId = imgResId
     }
 
     /**
@@ -183,6 +187,9 @@ class FboRenderer(context: Context, resId: Int = R.mipmap.ic_launcher) : GLSurfa
     }
 
     override fun onDrawFrame(gl: GL10?) {
+        mBitmap = BitmapFactory.decodeResource(mContext.resources, mResId)
+        mImageTextureId = createImageTexture()
+        mTextureRenderer.setTextureId(mFboTextureId)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFboId)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glUseProgram(mProgram)

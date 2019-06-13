@@ -12,6 +12,7 @@ import com.hikobe8.androidmediaproject.draw.PorterDuffDemoActivity
 import com.hikobe8.androidmediaproject.media.ExtractMuteVideoActivity
 import com.hikobe8.androidmediaproject.mediacodec.AudioRecordPlayWithCodecActivity
 import com.hikobe8.androidmediaproject.mediacodec.CameraRecordWithCodecActivity
+import com.hikobe8.androidmediaproject.mediacodec.EncodeImages2VideoActivity
 import com.hikobe8.androidmediaproject.mediacodec.MediaCodecDecodeActivity
 import com.hikobe8.androidmediaproject.opengl.OpenGLMainActivity
 
@@ -64,6 +65,10 @@ class MainActivity : AppCompatActivity() {
 
     fun go2DecodeByCodec(view: View) {
         MediaCodecDecodeActivity.launch(this)
+    }
+
+    fun go2EncodeImagesToVideo(view: View) {
+        EncodeImages2VideoActivity.launch(this)
     }
 
 }
