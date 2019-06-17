@@ -13,7 +13,7 @@ import kotlin.concurrent.thread
 /***
  *  Author : hikobe8@github.com
  *  Create at 19-6-13 下午6:37
- *  description : 
+ *  description :
  */
 class EncodeImages2VideoActivity : AppCompatActivity() {
 
@@ -31,8 +31,8 @@ class EncodeImages2VideoActivity : AppCompatActivity() {
         gl_content.setRenderer(renderer)
         gl_content.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         thread {
-            for (i in 0 .. 134){
-                val id = resources.getIdentifier("slice$i", "drawable", packageName)
+            for (i in 0..700) {
+                val id = resources.getIdentifier("slice_${i % 7}", "drawable", packageName)
                 renderer.setImageResId(id)
                 gl_content.requestRender()
                 Thread.sleep(60)
