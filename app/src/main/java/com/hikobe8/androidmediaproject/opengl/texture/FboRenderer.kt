@@ -151,6 +151,7 @@ class FboRenderer(context: Context, resId: Int = R.drawable.batman) : GLSurfaceV
         mTextureRenderer.onSurfaceSizeChanged(width, height)
         createFBO(width, height)
         mOnTextureAvailableListener?.onTextureAvailable(mFboTextureId)
+        onTextureCreateListener?.onTextureCreate(mFboTextureId, width, height)
         mTextureRenderer.setTextureId(mFboTextureId)
         if (width > height) {
             //横屏
@@ -224,6 +225,12 @@ class FboRenderer(context: Context, resId: Int = R.drawable.batman) : GLSurfaceV
     }
 
     var mOnTextureAvailableListener: OnTextureAvailableListener? = null
+
+    interface OnTextureCreateListener {
+        fun onTextureCreate(textureId: Int, width: Int, height: Int)
+    }
+
+    var onTextureCreateListener: OnTextureCreateListener? = null
 
     private fun createImageTexture(): Int {
         val texture = IntArray(1)
