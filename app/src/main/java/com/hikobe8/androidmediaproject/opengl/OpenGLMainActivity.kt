@@ -16,6 +16,7 @@ import com.hikobe8.androidmediaproject.opengl.multi_surface.SingleTextureMultiSu
 import com.hikobe8.androidmediaproject.opengl.record.VideoRecordActivity
 import com.hikobe8.androidmediaproject.opengl.texture.BasicTextureActivity
 import com.hikobe8.androidmediaproject.opengl.texture.FboTextureActivity
+import com.hikobe8.androidmediaproject.opengl.yuv.YUVActivity
 
 /***
  *  Author : ryu18356@gmail.com
@@ -47,6 +48,7 @@ class OpenGLMainActivity: AppCompatActivity(){
             R.id.btn_multi_texture -> SingleSurfaceMultiTextureActivity.launch(this)
             R.id.btn_preview -> RayCameraPreviewActivity.launch(this)
             R.id.btn_encode_video -> VideoRecordActivity.launch(this)
+            R.id.btn_yuv -> YUVActivity.launch(this)
         }
 
     }
