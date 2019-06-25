@@ -32,7 +32,7 @@ class ShaderUtil {
                 var eof = false
                 while (!eof) {
                     val line = ais.readLine()
-                    eof = TextUtils.isEmpty(line)
+                    eof = line == null
                     if (!eof)
                         strBuilder.append(line).append("\n")
                 }
