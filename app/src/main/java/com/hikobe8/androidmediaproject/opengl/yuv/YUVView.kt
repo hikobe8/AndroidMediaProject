@@ -11,7 +11,7 @@ import com.hikobe8.androidmediaproject.opengl.egl.RayEGLSurfaceView
  */
 class YUVView(context: Context?, attrs: AttributeSet?) : RayEGLSurfaceView(context, attrs) {
 
-    private var yuvRender: YUVRender = YUVRender(context!!)
+    private var yuvRender = YUVRender(context!!)
 
     init {
         setRenderer(yuvRender)

@@ -90,6 +90,10 @@ class TextureRenderer(context: Context) : RayRenderer {
     override fun onDraw() {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glUseProgram(mProgram)
+        /**
+         * 多 sampler 的 FBO 时注意一定要激活这个GL_TEXTURE0
+         */
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId)
         GLES20.glEnableVertexAttribArray(mPositionHandle)
         GLES20.glEnableVertexAttribArray(mTextureCoordinateHandle)

@@ -103,56 +103,13 @@ class YUVRender(private val mContext: Context) : RayRenderer {
             .asFloatBuffer()
             .put(TEXTURE_COORDS).apply { position(0) }
         Matrix.setIdentityM(mMatrix, 0)
-        val fbos = IntArray(1)
-        GLES20.glGenBuffers(1, fbos, 0)
-        mFBOId = fbos[0]
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFBOId)
-
-        val textureIds = IntArray(1)
-        GLES20.glGenTextures(1, textureIds, 0)
-        mTextureId = textureIds[0]
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId)
-
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT)
-
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
-
-        GLES20.glTexImage2D(
-            GLES20.GL_TEXTURE_2D,
-            0,
-            GLES20.GL_RGBA,
-            720,
-            500,
-            0,
-            GLES20.GL_RGBA,
-            GLES20.GL_UNSIGNED_BYTE,
-            null
-        )
-        GLES20.glFramebufferTexture2D(
-            GLES20.GL_FRAMEBUFFER,
-            GLES20.GL_COLOR_ATTACHMENT0,
-            GLES20.GL_TEXTURE_2D,
-            mTextureId,
-            0
-        )
-        if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-            Log.e("ywl5320", "fbo wrong")
-        } else {
-            Log.e("ywl5320", "fbo success")
-        }
-
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
-
     }
 
     override fun onSurfaceSizeChanged(width: Int, height: Int) {
-//        Matrix.rotateM(mMatrix, 0, 180f, 1f, 0f, 0f)
+        Matrix.rotateM(mMatrix, 0, 180f, 1f, 0f, 0f)
         GLES20.glViewport(0, 0, width, height)
         mTextureRenderer.onSurfaceSizeChanged(width, height)
-//        createFBO(width, height)
+        createFBO(width, height)
         mTextureRenderer.setTextureId(mTextureId)
     }
 
