@@ -1,5 +1,7 @@
 package com.hikobe8.androidmediaproject
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
@@ -20,6 +22,38 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val permissionArray: ArrayList<String> = ArrayList()
+            if (!PermissionUtils.checkPermissionGranted(this, Manifest.permission.CAMERA)) {
+                permissionArray.add(Manifest.permission.CAMERA)
+            }
+            if (!PermissionUtils.checkPermissionGranted(this, Manifest.permission.RECORD_AUDIO)) {
+                permissionArray.add(Manifest.permission.RECORD_AUDIO)
+            }
+            if (!PermissionUtils.checkPermissionGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                permissionArray.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
+            if (permissionArray.size < 1) {
+                initViews()
+            } else {
+                PermissionUtils.requestPermission(this, permissionArray.toArray(arrayOf()))
+            }
+        } else {
+            initViews()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (PermissionUtils.isAllPermissionsGranted(requestCode, grantResults)) {
+            initViews()
+        } else {
+            "权限获取失败".show(this)
+            finish()
+        }
+    }
+
+    private fun initViews() {
         setContentView(R.layout.activity_main)
     }
 

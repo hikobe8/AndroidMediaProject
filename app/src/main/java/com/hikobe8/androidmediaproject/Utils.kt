@@ -28,9 +28,12 @@ class PermissionUtils {
         }
 
         @RequiresApi(Build.VERSION_CODES.M)
-        fun requestPermission(activity:Activity, permissions:Array<String>, reqCode:Int) {
+        fun requestPermission(activity:Activity, permissions:Array<String>, reqCode:Int = 10) {
             activity.requestPermissions(permissions, reqCode)
         }
+
+        fun isAllPermissionsGranted(reqCode: Int, grantResults: IntArray) =
+            reqCode == 10 && (grantResults.fold(0) { acc, i -> acc + i } == 0)
     }
 
 }

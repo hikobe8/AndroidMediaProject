@@ -90,7 +90,7 @@ class CameraRecordActivity : AppCompatActivity() {
             if (permissionArray.size < 1) {
                 initViews()
             } else {
-                PermissionUtils.requestPermission(this, permissionArray.toArray(arrayOf()), 10)
+                PermissionUtils.requestPermission(this, permissionArray.toArray(arrayOf()))
             }
         } else {
             initViews()
@@ -99,7 +99,7 @@ class CameraRecordActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 10 && grantResults.size > 1) {
+        if (PermissionUtils.isAllPermissionsGranted(requestCode, grantResults)) {
             initViews()
         } else {
             onBackPressed()

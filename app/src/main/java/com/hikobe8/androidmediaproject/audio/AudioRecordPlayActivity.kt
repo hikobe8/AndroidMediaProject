@@ -131,7 +131,7 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
                 if (!PermissionUtils.checkPermissionGranted(mActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                     permissionArray.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
-                PermissionUtils.requestPermission(mActivity, permissionArray.toArray(arrayOf()), 10)
+                PermissionUtils.requestPermission(mActivity, permissionArray.toArray(arrayOf()))
             }
         } else {
             initViews()
@@ -160,7 +160,7 @@ class AudioRecordPlayActivity : BaseActivity(), View.OnClickListener, AudioAdapt
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 10 && permissions.isNotEmpty()) {
+        if (PermissionUtils.isAllPermissionsGranted(requestCode, grantResults)) {
             initViews()
         } else {
             finish()

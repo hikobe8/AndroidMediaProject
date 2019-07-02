@@ -33,7 +33,7 @@ class ExtractMuteVideoActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (PermissionUtils.checkPermissionGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                PermissionUtils.requestPermission(mActivity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 10)
+                PermissionUtils.requestPermission(mActivity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE))
             } else {
                 initViews()
             }
@@ -45,7 +45,7 @@ class ExtractMuteVideoActivity : BaseActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 10 && grantResults.isNotEmpty()) {
+        if (PermissionUtils.isAllPermissionsGranted(requestCode, grantResults)) {
             initViews()
         }
     }
